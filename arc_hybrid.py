@@ -76,8 +76,9 @@ class ArcHybridParser:
         self.lbl_output_bias = self.model.add_parameters((out_size))
 
     def save(self, name):
+        # save model
         self.model.save(f'{name}.model')
-        # keep copies
+        # keep copies of model related stuff
         model = self.model
         trainer = self.trainer
         empty = self.empty
@@ -94,7 +95,7 @@ class ArcHybridParser:
         lbl_hidden_bias = self.lbl_hidden_bias
         lbl_output = self.lbl_output
         lbl_output_bias = self.lbl_output_bias
-        # set to None
+        # set to None before pickling
         self.model = None
         self.trainer = None
         self.empty = None
@@ -114,7 +115,7 @@ class ArcHybridParser:
         # save pickle
         with open(f'{name}.pickle', 'wb') as f:
             pickle.dump(self, f)
-        # restore
+        # restore model
         self.model = model
         self.trainer = trainer
         self.empty = empty
@@ -138,7 +139,7 @@ class ArcHybridParser:
             obj = pickle.load(f)
             obj.start_model()
             obj.model.populate(f'{name}.model')
-        return obj
+            return obj
 
     def set_empty_vector(self):
         w_pad = self.wlookup[self.w2i['*pad*']]
