@@ -21,6 +21,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('infile')
+    parser.add_argument('--outdir', default='out')
     parser.add_argument('--w_embed_dim',      type=int, default=100)
     parser.add_argument('--t_embed_dim',      type=int, default=25)
     parser.add_argument('--lstm_hidden_size', type=int, default=150)
@@ -40,7 +41,7 @@ if __name__ == '__main__':
         print('epoch', epoch + 1)
         random.shuffle(sentences)
         parser.train(sentences)
-        name = f'out/parser{epoch+1:03}'
+        name = f'{args.outdir}/parser{epoch+1:03}'
         print('saving', name)
         parser.save(name)
         print()
