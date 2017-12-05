@@ -278,6 +278,7 @@ class ArcHybridParser:
         print(f'count: {i}\tloss: {loss_all/total_all:.4f}\ttime: {end-start_all:,.2f} secs')
 
     def parse_sentence(self, sentence):
+        self.set_empty_vector()
         # assign embedding to each word
         features = self.extract_features(sentence)
         # initialize sentence parse
@@ -289,12 +290,24 @@ class ArcHybridParser:
             act_scores = act_scores.npvalue()
             lbl_scores = lbl_scores.npvalue()
             # select transition
-            best_act = np.argmax(act_scores)
-            best_lbl = None
-            if best_act == 'left_arc':
-                _, best_lbl = max(zip(lbl_scores[1::2], self.i2r))
-            elif best_act == 'right_arc':
-                _, best_lbl = max(zip(lbl_scores[2::2], self.i2r))
+
+            left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.i2r))
+            right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.i2r))
+
+            transitions = []
+
+            if state.is_legal('shift'):
+                t = ('shift', None, act_scores[state.t2i['shift']] + lbl_scores[0])
+                transitions.append(t)
+            if state.is_legal('left_arc'):
+                t = ('left_arc', left_lbl, act_scores[state.t2i['left_arc']] + left_lbl_score)
+                transitions.append(t)
+            if state.is_legal('right_arc'):
+                t = ('right_arc', right_lbl, act_scores[state.t2i['right_arc']] + right_lbl_score)
+                transitions.append(t)
+
+            best_act, best_lbl, best_score = max(transitions, key=itemgetter(2))
+
             # perform transition
             state.perform_transition(best_act, best_lbl)
         dy.renew_cg()

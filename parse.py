@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     print('loading ...')
     parser = ArcHybridParser.load(args.model)
-    sentences = read_conllx(args.infile)
+    sentences = read_conllx(args.infile, non_proj=True)
 
     print('parsing ...')
     for i, s in enumerate(sentences):
@@ -23,6 +23,8 @@ if __name__ == '__main__':
 
     print('writing output ...')
     for s in sentences:
-        s.head = s.parent_id = s.pred_parent_id
-        s.deprel = s.relation = s.pred_relation
+        for e in s:
+            if e.id > 0:
+                e.head = e.parent_id = e.pred_parent_id
+                e.deprel = e.relation = e.pred_relation
     write_conllx(args.outfile, sentences)

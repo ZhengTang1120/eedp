@@ -3,9 +3,9 @@ from collections import Counter
 
 
 
-def read_conllx(filename):
+def read_conllx(filename, non_proj=False):
     """Reads dependency annotations from CoNLL-X format"""
-    return list(gen_conllx(filename))
+    return list(gen_conllx(filename, non_proj))
 
 
 
@@ -48,7 +48,7 @@ def make_vocabularies(sentences):
 
 
 
-def gen_conllx(filename):
+def gen_conllx(filename, non_proj=False):
     """
     Reads dependency annotations in CoNLL-X format and returns a generator.
     """
@@ -59,7 +59,7 @@ def gen_conllx(filename):
         sentence = [root]
         for line in f:
             if line.isspace() and len(sentence) > 1:
-                if is_projective(sentence):
+                if non_proj or is_projective(sentence):
                     yield sentence
                 else:
                     dropped += 1
