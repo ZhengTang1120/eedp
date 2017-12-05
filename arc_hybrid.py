@@ -276,3 +276,26 @@ class ArcHybridParser:
         end = time.time()
         print('\nend of epoch')
         print(f'count: {i}\tloss: {loss_all/total_all:.4f}\ttime: {end-start_all:,.2f} secs')
+
+    def parse_sentence(self, sentence):
+        # assign embedding to each word
+        features = self.extract_features(sentence)
+        # initialize sentence parse
+        state = ArcHybrid(sentence)
+        # parse sentence
+        while not state.is_terminal():
+            act_scores, lbl_scores = self.evaluate(state.stack, state.buffer, features)
+            # get numpy arrays
+            act_scores = act_scores.npvalue()
+            lbl_scores = lbl_scores.npvalue()
+            # select transition
+            best_act = np.argmax(act_scores)
+            best_lbl = None
+            if best_act == 'left_arc':
+                _, best_lbl = max(zip(lbl_scores[1::2], self.i2r))
+            elif best_act == 'right_arc':
+                _, best_lbl = max(zip(lbl_scores[2::2], self.i2r))
+            # perform transition
+            state.perform_transition(best_act, best_lbl)
+        dy.renew_cg()
+        return sentence
