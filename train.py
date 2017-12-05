@@ -2,7 +2,7 @@
 
 import argparse, random
 from utils import *
-from parser import ArcHybridParser
+from arc_hybrid import ArcHybridParser
 
 def make_parser(args, word_count, words, tags, rels):
     return ArcHybridParser(
