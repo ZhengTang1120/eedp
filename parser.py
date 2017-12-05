@@ -164,7 +164,6 @@ class ArcHybridParser:
             w_vec = self.wlookup[w_id]
             t_vec = self.tlookup[t_id]
             i_vec = dy.concatenate([w_vec, t_vec])
-            # entry.i_vec = i_vec
             inputs.append(i_vec)
         outputs = self.bilstm.transduce(inputs)
         return outputs
@@ -253,7 +252,6 @@ class ArcHybridParser:
 
                 # perform transition
                 selected = best_legal if loss > 0 and random.random() < 0.1 else best_correct
-                # selected = best_legal if loss > 0 else best_correct
                 state.perform_transition(selected[0], selected[1])
 
             # process losses in chunks
