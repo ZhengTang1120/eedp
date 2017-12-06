@@ -13,6 +13,8 @@ def make_parser(args, word_count, words, tags, rels):
         args.lstm_num_layers,
         args.act_hidden_size,
         args.lbl_hidden_size,
+        args.alpha,
+        args.p_explore,
     )
 
 if __name__ == '__main__':
@@ -22,13 +24,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('infile')
     parser.add_argument('--outdir', default='out')
-    parser.add_argument('--w_embed_dim',      type=int, default=100)
-    parser.add_argument('--t_embed_dim',      type=int, default=25)
-    parser.add_argument('--lstm_hidden_size', type=int, default=150)
-    parser.add_argument('--lstm_num_layers',  type=int, default=2)
-    parser.add_argument('--act_hidden_size',  type=int, default=100)
-    parser.add_argument('--lbl_hidden_size',  type=int, default=100)
-    parser.add_argument('--epochs',           type=int, default=30)
+    parser.add_argument('--w_embed_dim',      type=int,   default=100)
+    parser.add_argument('--t_embed_dim',      type=int,   default=25)
+    parser.add_argument('--lstm_hidden_size', type=int,   default=125)
+    parser.add_argument('--lstm_num_layers',  type=int,   default=2)
+    parser.add_argument('--act_hidden_size',  type=int,   default=100)
+    parser.add_argument('--lbl_hidden_size',  type=int,   default=100)
+    parser.add_argument('--epochs',           type=int,   default=30)
+    parser.add_argument('--alpha',            type=float, default=0.25) # for word dropout
+    parser.add_argument('--p_explore',        type=float, default=0.1)
     args = parser.parse_args()
 
     print('loading ...')

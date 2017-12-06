@@ -11,7 +11,8 @@ class ArcHybridParser:
     def __init__(self, word_count, words, tags, relations,
             w_embed_size, t_embed_size,
             lstm_hidden_size, lstm_num_layers,
-            act_hidden_size, lbl_hidden_size):
+            act_hidden_size, lbl_hidden_size,
+            alpha, p_explore):
 
         # counts used for word dropout
         self.word_count = word_count
@@ -28,10 +29,12 @@ class ArcHybridParser:
 
         self.w_embed_size = w_embed_size
         self.t_embed_size = t_embed_size
-        self.lstm_hidden_size = lstm_hidden_size
+        self.lstm_hidden_size = lstm_hidden_size * 2
         self.lstm_num_layers = lstm_num_layers
         self.act_hidden_size = act_hidden_size
         self.lbl_hidden_size = lbl_hidden_size
+        self.alpha = alpha
+        self.p_explore = p_explore
 
         self.empty = None
 
@@ -63,7 +66,7 @@ class ArcHybridParser:
         # fully connected network with one hidden layer
         # to predict the transition to take next
         out_size = 3 # shift, left_arc, right_arc
-        self.act_hidden      = self.model.add_parameters((self.act_hidden_size, self.lstm_hidden_size * 3))
+        self.act_hidden      = self.model.add_parameters((self.act_hidden_size, self.lstm_hidden_size * 4))
         self.act_hidden_bias = self.model.add_parameters((self.act_hidden_size))
         self.act_output      = self.model.add_parameters((out_size, self.act_hidden_size))
         self.act_output_bias = self.model.add_parameters((out_size))
@@ -71,7 +74,7 @@ class ArcHybridParser:
         # fully connected network with one hidden layer
         # to predict the arc label
         out_size = 1 + len(self.i2r) * 2
-        self.lbl_hidden      = self.model.add_parameters((self.lbl_hidden_size, self.lstm_hidden_size * 3))
+        self.lbl_hidden      = self.model.add_parameters((self.lbl_hidden_size, self.lstm_hidden_size * 4))
         self.lbl_hidden_bias = self.model.add_parameters((self.lbl_hidden_size))
         self.lbl_output      = self.model.add_parameters((out_size, self.lbl_hidden_size))
         self.lbl_output_bias = self.model.add_parameters((out_size))
@@ -156,7 +159,7 @@ class ArcHybridParser:
             # should we drop the word?
             if drop_word:
                 c = self.word_count.get(entry.norm, 0)
-                drop_word = random.random() < (1 / (1 + 4 * c))
+                drop_word = random.random() < self.alpha / (c + self.alpha)
             # get word and tag ids
             w_id = unk if drop_word else self.w2i.get(entry.norm, unk)
             t_id = self.t2i[entry.postag]
@@ -173,7 +176,8 @@ class ArcHybridParser:
         b = features[buffer[0].id] if len(buffer) > 0 else self.empty
         s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
         s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
-        input = dy.concatenate([b, s0, s1])
+        s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
+        input = dy.concatenate([b, s0, s1, s2])
         # predict action
         act_hidden = dy.tanh(self.act_hidden.expr() * input + self.act_hidden_bias.expr())
         act_output = self.act_output.expr() * act_hidden + self.act_output_bias.expr()
@@ -251,7 +255,8 @@ class ArcHybridParser:
                 total_all += 1
 
                 # perform transition
-                selected = best_legal if loss > 0 and random.random() < 0.1 else best_correct
+                # note that we compare against loss + 1, to perform aggressive exploration
+                selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
                 state.perform_transition(selected[0], selected[1])
 
             # process losses in chunks
@@ -260,9 +265,9 @@ class ArcHybridParser:
                 loss.scalar_value()
                 loss.backward()
                 self.trainer.update()
-                losses = []
                 dy.renew_cg()
                 self.set_empty_vector()
+                losses = []
 
         # consider any remaining losses
         if len(losses) > 0:
