@@ -29,7 +29,7 @@ class ArcHybridParser:
 
         self.w_embed_size = w_embed_size
         self.t_embed_size = t_embed_size
-        self.lstm_hidden_size = lstm_hidden_size * 2
+        self.lstm_hidden_size = lstm_hidden_size * 2 # must be even
         self.lstm_num_layers = lstm_num_layers
         self.act_hidden_size = act_hidden_size
         self.lbl_hidden_size = lbl_hidden_size
