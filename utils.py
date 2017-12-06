@@ -12,11 +12,12 @@ def read_conllx(filename, non_proj=False):
 def write_conllx(filename, sentences):
     """Write sentences to conllx file"""
     with open(filename, 'w') as f:
-        for sentence in sentences:
+        for i, sentence in enumerate(sentences):
+            if i > 0:
+                f.write('\n')
             for entry in sentence:
                 if entry.id > 0: # skip root added by gen_conllx()
                     f.write(str(entry) + '\n')
-            f.write('\n')
 
 
 
