@@ -209,29 +209,29 @@ class ArcHybridParser:
             state = ArcHybrid(sentence)
             # parse sentence
             while not state.is_terminal():
-                act_scores, lbl_scores = self.evaluate(state.stack, state.buffer, features)
+                dy_act_scores, dy_lbl_scores = self.evaluate(state.stack, state.buffer, features)
 
                 # get scores
-                act_ss = act_scores.value()
-                lbl_ss = lbl_scores.value()
+                np_act_scores = dy_act_scores.npvalue()
+                np_lbl_scores = dy_lbl_scores.npvalue()
 
                 # collect all legal transitions
                 legal_transitions = []
                 if state.is_legal('shift'):
                     ix = state.t2i['shift']
-                    t = ('shift', None, act_ss[ix] + lbl_ss[0], act_scores[ix] + lbl_scores[0])
+                    t = ('shift', None, np_act_scores[ix] + np_lbl_scores[0], dy_act_scores[ix] + dy_lbl_scores[0])
                     legal_transitions.append(t)
                 if state.is_legal('left_arc'):
                     ix = state.t2i['left_arc']
                     for j,r in enumerate(self.i2r):
                         k = 1 + 2 * j
-                        t = ('left_arc', r, act_ss[ix] + lbl_ss[k], act_scores[ix] + lbl_scores[k])
+                        t = ('left_arc', r, np_act_scores[ix] + np_lbl_scores[k], dy_act_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
                 if state.is_legal('right_arc'):
                     ix = state.t2i['right_arc']
                     for j,r in enumerate(self.i2r):
                         k = 2 + 2 * j
-                        t = ('right_arc', r, act_ss[ix] + lbl_ss[k], act_scores[ix] + lbl_scores[k])
+                        t = ('right_arc', r, np_act_scores[ix] + np_lbl_scores[k], dy_act_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
 
                 # collect all correct transitions
@@ -295,7 +295,6 @@ class ArcHybridParser:
             act_scores = act_scores.npvalue()
             lbl_scores = lbl_scores.npvalue()
             # select transition
-
             left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.i2r))
             right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.i2r))
 
