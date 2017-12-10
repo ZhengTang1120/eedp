@@ -36,12 +36,6 @@ class ArcHybridParser:
         self.alpha = alpha
         self.p_explore = p_explore
 
-        self.empty = None
-
-        self.start_model()
-
-    def start_model(self):
-
         self.model = dy.Model()
         self.trainer = dy.AdamTrainer(self.model)
 
@@ -80,70 +74,26 @@ class ArcHybridParser:
         self.lbl_output_bias = self.model.add_parameters((out_size))
 
     def save(self, name):
+        params = (
+            self.word_count, self.i2w, self.i2t, self.i2r,
+            self.w_embed_size, self.t_embed_size,
+            self.lstm_hidden_size // 2, self.lstm_num_layers,
+            self.act_hidden_size, self.lbl_hidden_size,
+            self.alpha, self.p_explore
+        )
         # save model
         self.model.save(f'{name}.model')
-        # keep copies of model related stuff
-        model = self.model
-        trainer = self.trainer
-        empty = self.empty
-        wlookup = self.wlookup
-        tlookup = self.tlookup
-        bilstm = self.bilstm
-        word_to_lstm = self.word_to_lstm
-        word_to_lstm_bias = self.word_to_lstm_bias
-        act_hidden = self.act_hidden
-        act_hidden_bias = self.act_hidden_bias
-        act_output = self.act_output
-        act_output_bias = self.act_output_bias
-        lbl_hidden = self.lbl_hidden
-        lbl_hidden_bias = self.lbl_hidden_bias
-        lbl_output = self.lbl_output
-        lbl_output_bias = self.lbl_output_bias
-        # set to None before pickling
-        self.model = None
-        self.trainer = None
-        self.empty = None
-        self.wlookup = None
-        self.tlookup = None
-        self.bilstm = None
-        self.word_to_lstm = None
-        self.word_to_lstm_bias = None
-        self.act_hidden = None
-        self.act_hidden_bias = None
-        self.act_output = None
-        self.act_output_bias = None
-        self.lbl_hidden = None
-        self.lbl_hidden_bias = None
-        self.lbl_output = None
-        self.lbl_output_bias = None
         # save pickle
         with open(f'{name}.pickle', 'wb') as f:
-            pickle.dump(self, f)
-        # restore model
-        self.model = model
-        self.trainer = trainer
-        self.empty = empty
-        self.wlookup = wlookup
-        self.tlookup = tlookup
-        self.bilstm = bilstm
-        self.word_to_lstm = word_to_lstm
-        self.word_to_lstm_bias = word_to_lstm_bias
-        self.act_hidden = act_hidden
-        self.act_hidden_bias = act_hidden_bias
-        self.act_output = act_output
-        self.act_output_bias = act_output_bias
-        self.lbl_hidden = lbl_hidden
-        self.lbl_hidden_bias = lbl_hidden_bias
-        self.lbl_output = lbl_output
-        self.lbl_output_bias = lbl_output_bias
+            pickle.dump(params, f)
 
     @staticmethod
     def load(name):
         with open(f'{name}.pickle', 'rb') as f:
-            obj = pickle.load(f)
-            obj.start_model()
-            obj.model.populate(f'{name}.model')
-            return obj
+            params = pickle.load(f)
+            parser = ArcHybridParser(*params)
+            parser.model.populate(f'{name}.model')
+            return parser
 
     def set_empty_vector(self):
         w_pad = self.wlookup[self.w2i['*pad*']]
