@@ -1,10 +1,13 @@
 import time
 import random
 import pickle
-from operator import itemgetter
+from collections import namedtuple
+from operator import attrgetter, itemgetter
 import dynet as dy
 import numpy as np
 from transition_systems import ArcHybrid
+
+Transition = namedtuple('Transition', 'op label score dy_score')
 
 class ArcHybridParser:
 
@@ -169,36 +172,36 @@ class ArcHybridParser:
                 legal_transitions = []
                 if state.is_legal('shift'):
                     ix = state.t2i['shift']
-                    t = ('shift', None, np_act_scores[ix] + np_lbl_scores[0], dy_act_scores[ix] + dy_lbl_scores[0])
+                    t = Transition('shift', None, np_act_scores[ix] + np_lbl_scores[0], dy_act_scores[ix] + dy_lbl_scores[0])
                     legal_transitions.append(t)
                 if state.is_legal('left_arc'):
                     ix = state.t2i['left_arc']
                     for j,r in enumerate(self.i2r):
                         k = 1 + 2 * j
-                        t = ('left_arc', r, np_act_scores[ix] + np_lbl_scores[k], dy_act_scores[ix] + dy_lbl_scores[k])
+                        t = Transition('left_arc', r, np_act_scores[ix] + np_lbl_scores[k], dy_act_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
                 if state.is_legal('right_arc'):
                     ix = state.t2i['right_arc']
                     for j,r in enumerate(self.i2r):
                         k = 2 + 2 * j
-                        t = ('right_arc', r, np_act_scores[ix] + np_lbl_scores[k], dy_act_scores[ix] + dy_lbl_scores[k])
+                        t = Transition('right_arc', r, np_act_scores[ix] + np_lbl_scores[k], dy_act_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
 
                 # collect all correct transitions
                 correct_transitions = []
                 for t in legal_transitions:
                     if state.is_correct(t[0]):
-                        if t[0] == 'shift' or t[1] == state.stack[-1].relation:
+                        if t.op == 'shift' or t.label == state.stack[-1].relation:
                             correct_transitions.append(t)
 
                 # select transition
-                best_legal = max(legal_transitions, key=itemgetter(2))
-                best_correct = max(correct_transitions, key=itemgetter(2))
+                best_legal = max(legal_transitions, key=attrgetter('score'))
+                best_correct = max(correct_transitions, key=attrgetter('score'))
 
                 # accumulate losses
-                loss = 1 - best_correct[2] + best_legal[2]
+                loss = 1 - best_correct.score + best_legal.score
                 if best_legal != best_correct and loss > 0:
-                    losses.append(1 - best_correct[3] + best_legal[3])
+                    losses.append(1 - best_correct.dy_score + best_legal.dy_score)
                     loss_chunk += loss
                     loss_all += loss
                 total_chunk += 1
@@ -207,7 +210,7 @@ class ArcHybridParser:
                 # perform transition
                 # note that we compare against loss + 1, to perform aggressive exploration
                 selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
-                state.perform_transition(selected[0], selected[1])
+                state.perform_transition(selected.op, selected.label)
 
             # process losses in chunks
             if len(losses) > 50:
