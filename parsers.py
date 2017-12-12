@@ -14,7 +14,7 @@ class ArcHybridParser:
     def __init__(self, word_count, words, tags, relations,
             w_embed_size, t_embed_size,
             lstm_hidden_size, lstm_num_layers,
-            act_hidden_size, lbl_hidden_size,
+            op_hidden_size, lbl_hidden_size,
             alpha, p_explore):
 
         # counts used for word dropout
@@ -34,7 +34,7 @@ class ArcHybridParser:
         self.t_embed_size = t_embed_size
         self.lstm_hidden_size = lstm_hidden_size * 2 # must be even
         self.lstm_num_layers = lstm_num_layers
-        self.act_hidden_size = act_hidden_size
+        self.op_hidden_size = op_hidden_size
         self.lbl_hidden_size = lbl_hidden_size
         self.alpha = alpha
         self.p_explore = p_explore
@@ -63,10 +63,10 @@ class ArcHybridParser:
         # fully connected network with one hidden layer
         # to predict the transition to take next
         out_size = 3 # shift, left_arc, right_arc
-        self.act_hidden      = self.model.add_parameters((self.act_hidden_size, self.lstm_hidden_size * 4))
-        self.act_hidden_bias = self.model.add_parameters((self.act_hidden_size))
-        self.act_output      = self.model.add_parameters((out_size, self.act_hidden_size))
-        self.act_output_bias = self.model.add_parameters((out_size))
+        self.op_hidden      = self.model.add_parameters((self.op_hidden_size, self.lstm_hidden_size * 4))
+        self.op_hidden_bias = self.model.add_parameters((self.op_hidden_size))
+        self.op_output      = self.model.add_parameters((out_size, self.op_hidden_size))
+        self.op_output_bias = self.model.add_parameters((out_size))
 
         # fully connected network with one hidden layer
         # to predict the arc label
@@ -81,7 +81,7 @@ class ArcHybridParser:
             self.word_count, self.i2w, self.i2t, self.i2r,
             self.w_embed_size, self.t_embed_size,
             self.lstm_hidden_size // 2, self.lstm_num_layers,
-            self.act_hidden_size, self.lbl_hidden_size,
+            self.op_hidden_size, self.lbl_hidden_size,
             self.alpha, self.p_explore
         )
         # save model
@@ -132,13 +132,13 @@ class ArcHybridParser:
         s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
         input = dy.concatenate([b, s0, s1, s2])
         # predict action
-        act_hidden = dy.tanh(self.act_hidden.expr() * input + self.act_hidden_bias.expr())
-        act_output = self.act_output.expr() * act_hidden + self.act_output_bias.expr()
+        op_hidden = dy.tanh(self.op_hidden.expr() * input + self.op_hidden_bias.expr())
+        op_output = self.op_output.expr() * op_hidden + self.op_output_bias.expr()
         # predict label
         lbl_hidden = dy.tanh(self.lbl_hidden.expr() * input + self.lbl_hidden_bias.expr())
         lbl_output = self.lbl_output.expr() * lbl_hidden + self.lbl_output_bias.expr()
         # return scores
-        return act_output, lbl_output
+        return op_output, lbl_output
 
     def train(self, sentences):
         start_chunk = time.time()
@@ -162,29 +162,29 @@ class ArcHybridParser:
             state = ArcHybrid(sentence)
             # parse sentence
             while not state.is_terminal():
-                dy_act_scores, dy_lbl_scores = self.evaluate(state.stack, state.buffer, features)
+                dy_op_scores, dy_lbl_scores = self.evaluate(state.stack, state.buffer, features)
 
-                # get scores
-                np_act_scores = dy_act_scores.npvalue()
+                # get scores in numpy arrays
+                np_op_scores = dy_op_scores.npvalue()
                 np_lbl_scores = dy_lbl_scores.npvalue()
 
                 # collect all legal transitions
                 legal_transitions = []
                 if state.is_legal('shift'):
                     ix = state.t2i['shift']
-                    t = Transition('shift', None, np_act_scores[ix] + np_lbl_scores[0], dy_act_scores[ix] + dy_lbl_scores[0])
+                    t = Transition('shift', None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
                     legal_transitions.append(t)
                 if state.is_legal('left_arc'):
                     ix = state.t2i['left_arc']
                     for j,r in enumerate(self.i2r):
                         k = 1 + 2 * j
-                        t = Transition('left_arc', r, np_act_scores[ix] + np_lbl_scores[k], dy_act_scores[ix] + dy_lbl_scores[k])
+                        t = Transition('left_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
                 if state.is_legal('right_arc'):
                     ix = state.t2i['right_arc']
                     for j,r in enumerate(self.i2r):
                         k = 2 + 2 * j
-                        t = Transition('right_arc', r, np_act_scores[ix] + np_lbl_scores[k], dy_act_scores[ix] + dy_lbl_scores[k])
+                        t = Transition('right_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
 
                 # collect all correct transitions
@@ -243,9 +243,9 @@ class ArcHybridParser:
         state = ArcHybrid(sentence)
         # parse sentence
         while not state.is_terminal():
-            act_scores, lbl_scores = self.evaluate(state.stack, state.buffer, features)
+            op_scores, lbl_scores = self.evaluate(state.stack, state.buffer, features)
             # get numpy arrays
-            act_scores = act_scores.npvalue()
+            op_scores = op_scores.npvalue()
             lbl_scores = lbl_scores.npvalue()
             # select transition
             left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.i2r))
@@ -254,13 +254,13 @@ class ArcHybridParser:
             transitions = []
 
             if state.is_legal('shift'):
-                t = ('shift', None, act_scores[state.t2i['shift']] + lbl_scores[0])
+                t = ('shift', None, op_scores[state.t2i['shift']] + lbl_scores[0])
                 transitions.append(t)
             if state.is_legal('left_arc'):
-                t = ('left_arc', left_lbl, act_scores[state.t2i['left_arc']] + left_lbl_score)
+                t = ('left_arc', left_lbl, op_scores[state.t2i['left_arc']] + left_lbl_score)
                 transitions.append(t)
             if state.is_legal('right_arc'):
-                t = ('right_arc', right_lbl, act_scores[state.t2i['right_arc']] + right_lbl_score)
+                t = ('right_arc', right_lbl, op_scores[state.t2i['right_arc']] + right_lbl_score)
                 transitions.append(t)
 
             best_act, best_lbl, best_score = max(transitions, key=itemgetter(2))
