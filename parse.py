@@ -2,7 +2,7 @@
 
 import argparse
 from utils import *
-from arc_hybrid import ArcHybridParser
+from parsers import ArcHybridParser
 
 if __name__ == '__main__':
     
