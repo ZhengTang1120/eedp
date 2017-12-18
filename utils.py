@@ -135,6 +135,7 @@ class ConllEntry:
         # aliases
         self.parent_id = self.head
         self.relation = self.deprel
+        self.brat_label = self.feats
 
     def __repr__(self):
         return '<ConllEntry: %s>' % self.form
