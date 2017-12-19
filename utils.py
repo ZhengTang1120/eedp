@@ -55,7 +55,7 @@ def gen_conllx(filename, non_proj=False):
     """
     read = 0
     dropped = 0
-    root = ConllEntry(0, '*root*', '_', '_', '*root*', '_', -1, 'rroot', '_', '_')
+    root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel='rroot')
     with open(filename) as f:
         sentence = [root]
         for line in f:
@@ -119,7 +119,9 @@ class ConllEntry:
     See http://anthology.aclweb.org/W/W06/W06-2920.pdf
     """
 
-    def __init__(self, id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel):
+    def __init__(self, id=None, form=None, lemma=None, cpostag=None,
+                 postag=None, feats=None, head=None, deprel=None,
+                 phead=None, pdeprel=None):
         self.id = id
         self.form = form
         self.norm = normalize(form)
@@ -131,7 +133,6 @@ class ConllEntry:
         self.deprel = deprel
         self.phead = phead
         self.pdeprel = pdeprel
-
         # aliases
         self.parent_id = self.head
         self.relation = self.deprel

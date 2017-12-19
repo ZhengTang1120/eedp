@@ -21,7 +21,7 @@ def brat_to_conllx(text, annotations):
     and returns a sequence of sentences formatted as conllx
     """
     global total_sentences, skipped_sentences
-    root = ConllEntry(0, '*root*', '_', '_', '*root*', '_', -1, 'rroot', '_', '_')
+    root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel='rroot')
     annotations = list(parse_annotations(annotations))
     skipped = 0
     for words, starts, ends in get_token_spans(text):
@@ -33,7 +33,7 @@ def brat_to_conllx(text, annotations):
                 tbm = get_tbm(annotations, starts[i], ends[i])
                 label = '_' if tbm is None else tbm.label
                 rel, head = get_relhead(annotations, starts, ends, tbm, i)
-                entry = ConllEntry(i + 1, words[i], '_', '_', tags[i], label, head, rel, '_', '_')
+                entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label, head=head, deprel=rel)
                 conllx.append(entry)
         except ValueError:
             print('ERROR: tokenization does not align')
