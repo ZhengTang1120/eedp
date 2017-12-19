@@ -11,14 +11,21 @@ from utils import *
 TextboundMention = namedtuple('TextboundMention', 'id label start end text')
 EventMention = namedtuple('EventMention', 'id label trigger arguments')
 
+# global variables to keep statistics that are printed at the end
+total_sentences = 0
+skipped_sentences = 0
+
 def brat_to_conllx(text, annotations):
     """
     gets an annotation corresponding to a single paper
     and returns a sequence of sentences formatted as conllx
     """
+    global total_sentences, skipped_sentences
     root = ConllEntry(0, '*root*', '_', '_', '*root*', '_', -1, 'rroot', '_', '_')
     annotations = list(parse_annotations(annotations))
+    skipped = 0
     for words, starts, ends in get_token_spans(text):
+        total_sentences += 1
         conllx = [root]
         tags = [t for w,t in pos_tag(words)]
         try:
@@ -29,7 +36,8 @@ def brat_to_conllx(text, annotations):
                 entry = ConllEntry(i + 1, words[i], '_', '_', tags[i], label, head, rel, '_', '_')
                 conllx.append(entry)
         except ValueError:
-            print('Tokenization does not align. Skipping...')
+            print('ERROR: tokenization does not align')
+            skipped_sentences += 1
             continue
         yield conllx
 
@@ -121,12 +129,17 @@ if __name__ == '__main__':
 
     sentences = []
     for fname in glob.glob(os.path.join(args.datadir, '*.a1')):
-        print(fname)
+        name = os.path.splitext(os.path.basename(fname))[0]
+        print(f'reading {name}')
         root = os.path.splitext(fname)[0]
         txt = read(root + '.txt')
         a1 = read(root + '.a1')
         a2 = read(root + '.a2')
         ann = f'{a1}\n{a2}'
         sentences += brat_to_conllx(txt, ann)
+    print('---')
+    print(f'{total_sentences:,} total sentences')
+    print(f'{skipped_sentences:,} sentences skipped')
+    print(f'{total_sentences-skipped_sentences:,} sentences remaining')
+    print(f'writing {args.outfile}')
     write_conllx(args.outfile, sentences)
-        
