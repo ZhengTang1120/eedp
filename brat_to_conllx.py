@@ -7,10 +7,15 @@ from collections import namedtuple, defaultdict
 from nltk import sent_tokenize, word_tokenize, pos_tag
 from utils import *
 
+# brat mentions
 TextboundMention = namedtuple('TextboundMention', 'id label start end text')
 EventMention = namedtuple('EventMention', 'id label trigger arguments')
 
 def brat_to_conllx(text, annotations):
+    """
+    gets an annotation corresponding to a single paper
+    and returns a sequence of sentences formatted as conllx
+    """
     root = ConllEntry(0, '*root*', '_', '_', '*root*', '_', -1, 'rroot', '_', '_')
     annotations = list(parse_annotations(annotations))
     for words, starts, ends in get_token_spans(text):
@@ -44,14 +49,21 @@ def get_mention_head(annotations, ends, mention_id):
 def get_relhead(annotations, starts, ends, tbm, tok):
     """returns the correct relation and head for the given textbound mention"""
     if tbm is not None:
+        # if mention is multitoken, all tokens should point to the mention head
         if tbm.end != ends[tok]:
             head = get_mention_head(annotations, ends, tbm.id)
             return 'multitoken', head
+        # if the mention is a trigger, then use the event id
+        mention_id = tbm.id
+        for a in annotations:
+            if a.id.startswith('E') and a.trigger == mention_id:
+                mention_id = a.id
+        # if mention is involved in an event, point to the event trigger
         for a in annotations:
             if a.id.startswith('E'):
                 for rel, args in a.arguments.items():
                     for arg in args:
-                        if arg == tbm.id:
+                        if arg == mention_id:
                             head = get_mention_head(annotations, ends, a.trigger)
                             return rel, head
     return '_', '_'
