@@ -129,17 +129,18 @@ if __name__ == '__main__':
 
     sentences = []
     for fname in glob.glob(os.path.join(args.datadir, '*.a1')):
-        name = os.path.splitext(os.path.basename(fname))[0]
-        print(f'reading {name}')
         root = os.path.splitext(fname)[0]
+        name = os.path.basename(root)
+        print(f'reading {name}')
         txt = read(root + '.txt')
         a1 = read(root + '.a1')
         a2 = read(root + '.a2')
-        ann = f'{a1}\n{a2}'
-        sentences += brat_to_conllx(txt, ann)
+        annotations = f'{a1}\n{a2}'
+        sentences += brat_to_conllx(txt, annotations)
+
     print('---')
-    print(f'{total_sentences:,} total sentences')
-    print(f'{skipped_sentences:,} sentences skipped')
-    print(f'{total_sentences-skipped_sentences:,} sentences remaining')
+    print(f'{total_sentences:,} sentences')
+    print(f'{skipped_sentences:,} skipped')
+    print(f'{total_sentences-skipped_sentences:,} remaining')
     print(f'writing {args.outfile}')
     write_conllx(args.outfile, sentences)
