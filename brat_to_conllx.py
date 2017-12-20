@@ -36,6 +36,9 @@ def brat_to_conllx(text, annotations):
                 entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label, head=head, deprel=rel)
                 conllx.append(entry)
         except ValueError:
+            # get_mention_head() searches for the token's end position
+            # in the `ends` list that corresponds to the sentence's tokens,
+            # and throws an exception if the provided end does not correspond to any token
             print('ERROR: tokenization does not align')
             skipped_sentences += 1
             continue
@@ -56,6 +59,7 @@ def get_mention_head(annotations, ends, mention_id):
 
 def get_relhead(annotations, starts, ends, tbm, tok):
     """returns the correct relation and head for the given textbound mention"""
+    # it the token does not belong to a textbound mention then it should be dropped
     if tbm is None:
         return 'none', -1
     # if mention is multitoken, all tokens should point to the mention head
@@ -75,6 +79,7 @@ def get_relhead(annotations, starts, ends, tbm, tok):
                     if arg == mention_id:
                         head = get_mention_head(annotations, ends, a.trigger)
                         return rel, head
+    # if token has no parent then point it to the root
     return 'root', 0
 
 def parse_annotations(annotations):
@@ -129,6 +134,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     sentences = []
+    # search for *.a1 instead of *.txt because sometimes
+    # there are other text files (e.g. readme.txt)
     for fname in glob.glob(os.path.join(args.datadir, '*.a1')):
         root = os.path.splitext(fname)[0]
         name = os.path.basename(root)
