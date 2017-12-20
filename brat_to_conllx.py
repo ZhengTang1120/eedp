@@ -57,7 +57,7 @@ def get_mention_head(annotations, ends, mention_id):
 def get_relhead(annotations, starts, ends, tbm, tok):
     """returns the correct relation and head for the given textbound mention"""
     if tbm is None:
-        return None, None
+        return 'none', -1
     # if mention is multitoken, all tokens should point to the mention head
     if tbm.end != ends[tok]:
         head = get_mention_head(annotations, ends, tbm.id)
