@@ -56,25 +56,26 @@ def get_mention_head(annotations, ends, mention_id):
 
 def get_relhead(annotations, starts, ends, tbm, tok):
     """returns the correct relation and head for the given textbound mention"""
-    if tbm is not None:
-        # if mention is multitoken, all tokens should point to the mention head
-        if tbm.end != ends[tok]:
-            head = get_mention_head(annotations, ends, tbm.id)
-            return 'multitoken', head
-        # if the mention is a trigger, then use the event id
-        mention_id = tbm.id
-        for a in annotations:
-            if a.id.startswith('E') and a.trigger == mention_id:
-                mention_id = a.id
-        # if mention is involved in an event, point to the event trigger
-        for a in annotations:
-            if a.id.startswith('E'):
-                for rel, args in a.arguments.items():
-                    for arg in args:
-                        if arg == mention_id:
-                            head = get_mention_head(annotations, ends, a.trigger)
-                            return rel, head
-    return '_', '_'
+    if tbm is None:
+        return None, None
+    # if mention is multitoken, all tokens should point to the mention head
+    if tbm.end != ends[tok]:
+        head = get_mention_head(annotations, ends, tbm.id)
+        return 'multitoken', head
+    # if the mention is a trigger, then use the event id
+    mention_id = tbm.id
+    for a in annotations:
+        if a.id.startswith('E') and a.trigger == mention_id:
+            mention_id = a.id
+    # if mention is involved in an event, point to the event trigger
+    for a in annotations:
+        if a.id.startswith('E'):
+            for rel, args in a.arguments.items():
+                for arg in args:
+                    if arg == mention_id:
+                        head = get_mention_head(annotations, ends, a.trigger)
+                        return rel, head
+    return 'root', 0
 
 def parse_annotations(annotations):
     for line in annotations.splitlines():
