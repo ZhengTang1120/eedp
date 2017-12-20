@@ -87,7 +87,8 @@ class ArcHybridWithDrop(ArcHybrid):
 
     def is_legal(self, transition):
         if transition == 'drop':
-            return len(self.buffer) > 0
+            # the root is in the buffer and can't be dropped
+            return len(self.buffer) > 1
         else:
             return super().is_legal(transition)
 
