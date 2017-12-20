@@ -87,18 +87,18 @@ class ArcHybridWithDrop(ArcHybrid):
 
     def is_legal(self, transition):
         if transition == 'drop':
-            # the root is in the buffer and can't be dropped
-            return len(self.buffer) > 1
+            # same condition we use for shift
+            return len(self.buffer) > 0 and self.buffer[0].id != 0
         else:
             return super().is_legal(transition)
 
     def cost(self, transition):
         if transition == 'drop':
             b = self.buffer[0]
-            all_elements = self.buffer + self.stack
+            entries = self.buffer[1:] + self.stack
             c = 0
-            c += sum(1 for h in all_elements if h.id == b.parent_id)
-            c += sum(1 for d in all_elements if d.parent_id == b.id)
+            c += sum(1 for h in entries if h.id == b.parent_id)
+            c += sum(1 for d in entries if d.parent_id == b.id)
             return c
         else:
             return super().cost(transition)
