@@ -75,3 +75,35 @@ class ArcHybrid:
             parent = self.stack[-1]
             child.pred_parent_id = parent.id
             child.pred_relation = relation
+
+
+
+class ArcHybridWithDrop(ArcHybrid):
+
+    def __init__(self, sentence):
+        super().__init__(sentence)
+        self.t2i['drop'] = len(self.i2t)
+        self.i2t.append('drop')
+
+    def is_legal(self, transition):
+        if transition == 'drop':
+            return len(self.buffer) > 0
+        else:
+            return super().is_legal(transition)
+
+    def cost(self, transition):
+        if transition == 'drop':
+            b = self.buffer[0]
+            all_elements = self.buffer + self.stack
+            c = 0
+            c += sum(1 for h in all_elements if h.id == b.parent_id)
+            c += sum(1 for d in all_elements if d.parent_id == b.id)
+            return c
+        else:
+            return super().cost(transition)
+
+    def perform_transition(self, transition, relation=None):
+        if transition == 'drop':
+            self.buffer.pop(0)
+        else:
+            super().perform_transition(transition, relation)
