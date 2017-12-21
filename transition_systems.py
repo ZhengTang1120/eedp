@@ -105,6 +105,8 @@ class ArcHybridWithDrop(ArcHybrid):
 
     def perform_transition(self, transition, relation=None):
         if transition == 'drop':
-            self.buffer.pop(0)
+            b = self.buffer.pop(0)
+            b.pred_parent_id = -1
+            b.pred_relation = 'none'
         else:
             super().perform_transition(transition, relation)
