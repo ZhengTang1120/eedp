@@ -186,6 +186,10 @@ class ArcHybridParser:
                         k = 2 + 2 * j
                         t = Transition('right_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
+                if state.is_legal('drop'):
+                    ix = state.t2i['drop']
+                    t = Transition('drop', None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
+                    legal_transitions.append(t)
 
                 # collect all correct transitions
                 correct_transitions = []
@@ -251,8 +255,8 @@ class ArcHybridParser:
             left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.i2r))
             right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.i2r))
 
+            # collect all legal transitions
             transitions = []
-
             if state.is_legal('shift'):
                 t = ('shift', None, op_scores[state.t2i['shift']] + lbl_scores[0])
                 transitions.append(t)
@@ -262,7 +266,11 @@ class ArcHybridParser:
             if state.is_legal('right_arc'):
                 t = ('right_arc', right_lbl, op_scores[state.t2i['right_arc']] + right_lbl_score)
                 transitions.append(t)
+            if state.is_legal('drop'):
+                t = ('drop', None, op_scores[state.t2i['drop']] + lbl_scores[0])
+                transitions.append(t)
 
+            # select best legal transition
             best_act, best_lbl, best_score = max(transitions, key=itemgetter(2))
 
             # perform transition
