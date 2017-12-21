@@ -14,7 +14,7 @@ class ArcHybridParser:
     def __init__(self, word_count, words, tags, relations,
             w_embed_size, t_embed_size,
             lstm_hidden_size, lstm_num_layers,
-            op_hidden_size, lbl_hidden_size,
+            dep_op_hidden_size, dep_lbl_hidden_size,
             alpha, p_explore):
 
         # counts used for word dropout
@@ -34,8 +34,8 @@ class ArcHybridParser:
         self.t_embed_size = t_embed_size
         self.lstm_hidden_size = lstm_hidden_size * 2 # must be even
         self.lstm_num_layers = lstm_num_layers
-        self.op_hidden_size = op_hidden_size
-        self.lbl_hidden_size = lbl_hidden_size
+        self.dep_op_hidden_size = dep_op_hidden_size
+        self.dep_lbl_hidden_size = dep_lbl_hidden_size
         self.alpha = alpha
         self.p_explore = p_explore
 
@@ -63,25 +63,25 @@ class ArcHybridParser:
         # fully connected network with one hidden layer
         # to predict the transition to take next
         out_size = 3 # shift, left_arc, right_arc
-        self.op_hidden      = self.model.add_parameters((self.op_hidden_size, self.lstm_hidden_size * 4))
-        self.op_hidden_bias = self.model.add_parameters((self.op_hidden_size))
-        self.op_output      = self.model.add_parameters((out_size, self.op_hidden_size))
-        self.op_output_bias = self.model.add_parameters((out_size))
+        self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 4))
+        self.dep_op_hidden_bias = self.model.add_parameters((self.dep_op_hidden_size))
+        self.dep_op_output      = self.model.add_parameters((out_size, self.dep_op_hidden_size))
+        self.dep_op_output_bias = self.model.add_parameters((out_size))
 
         # fully connected network with one hidden layer
         # to predict the arc label
         out_size = 1 + len(self.i2r) * 2
-        self.lbl_hidden      = self.model.add_parameters((self.lbl_hidden_size, self.lstm_hidden_size * 4))
-        self.lbl_hidden_bias = self.model.add_parameters((self.lbl_hidden_size))
-        self.lbl_output      = self.model.add_parameters((out_size, self.lbl_hidden_size))
-        self.lbl_output_bias = self.model.add_parameters((out_size))
+        self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 4))
+        self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
+        self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
+        self.dep_lbl_output_bias = self.model.add_parameters((out_size))
 
     def save(self, name):
         params = (
             self.word_count, self.i2w, self.i2t, self.i2r,
             self.w_embed_size, self.t_embed_size,
             self.lstm_hidden_size // 2, self.lstm_num_layers,
-            self.op_hidden_size, self.lbl_hidden_size,
+            self.dep_op_hidden_size, self.dep_lbl_hidden_size,
             self.alpha, self.p_explore
         )
         # save model
@@ -132,11 +132,11 @@ class ArcHybridParser:
         s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
         input = dy.concatenate([b, s0, s1, s2])
         # predict action
-        op_hidden = dy.tanh(self.op_hidden.expr() * input + self.op_hidden_bias.expr())
-        op_output = self.op_output.expr() * op_hidden + self.op_output_bias.expr()
+        op_hidden = dy.tanh(self.dep_op_hidden.expr() * input + self.dep_op_hidden_bias.expr())
+        op_output = self.dep_op_output.expr() * op_hidden + self.dep_op_output_bias.expr()
         # predict label
-        lbl_hidden = dy.tanh(self.lbl_hidden.expr() * input + self.lbl_hidden_bias.expr())
-        lbl_output = self.lbl_output.expr() * lbl_hidden + self.lbl_output_bias.expr()
+        lbl_hidden = dy.tanh(self.dep_lbl_hidden.expr() * input + self.dep_lbl_hidden_bias.expr())
+        lbl_output = self.dep_lbl_output.expr() * lbl_hidden + self.dep_lbl_output_bias.expr()
         # return scores
         return op_output, lbl_output
 
