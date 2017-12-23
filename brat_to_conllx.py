@@ -78,6 +78,8 @@ def get_relhead(annotations, starts, ends, tbm, tok):
                 for arg in args:
                     if arg == mention_id:
                         head = get_mention_head(annotations, ends, a.trigger)
+                        # collapse theme1, theme2, etc. into theme
+                        rel = rel[:-1] if rel[-1].isdigit() else rel
                         return rel, head
     # if token has no parent then point it to the root
     return 'root', 0
