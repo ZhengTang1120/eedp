@@ -13,6 +13,8 @@ def make_parser(args, word_count, words, tags, rels):
         args.lstm_num_layers,
         args.dep_op_hidden_size,
         args.dep_lbl_hidden_size,
+        args.ev_op_hidden_size,
+        args.ev_lbl_hidden_size,
         args.alpha,
         args.p_explore,
     )
@@ -30,6 +32,8 @@ if __name__ == '__main__':
     parser.add_argument('--lstm_num_layers',     type=int,   default=2)
     parser.add_argument('--dep_op_hidden_size',  type=int,   default=100)
     parser.add_argument('--dep_lbl_hidden_size', type=int,   default=100)
+    parser.add_argument('--ev_op_hidden_size',   type=int,   default=100)
+    parser.add_argument('--ev_lbl_hidden_size',  type=int,   default=100)
     parser.add_argument('--epochs',              type=int,   default=30)
     parser.add_argument('--alpha',               type=float, default=0.25) # for word dropout
     parser.add_argument('--p_explore',           type=float, default=0.1)

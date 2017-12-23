@@ -11,24 +11,25 @@ Transition = namedtuple('Transition', 'op label score dy_score')
 
 class ArcHybridParser:
 
-    def __init__(self, word_count, words, tags, relations,
+    def __init__(self, word_count, words, tags, dep_relations,
             w_embed_size, t_embed_size,
             lstm_hidden_size, lstm_num_layers,
             dep_op_hidden_size, dep_lbl_hidden_size,
+            ev_op_hidden_size, ev_lbl_hidden_size,
             alpha, p_explore):
 
         # counts used for word dropout
         self.word_count = word_count
 
         # mappings from ids to terms
-        self.i2w  = words
-        self.i2t  = tags
-        self.i2r  = relations
+        self.i2w = words
+        self.i2t = tags
+        self.dep_relations = dep_relations
+        self.ev_relations = [] # TODO get event relations from constructor argument
 
         # mapings from terms to ids
-        self.w2i  = {w:i for i,w in enumerate(words)}
-        self.t2i  = {t:i for i,t in enumerate(tags)}
-        self.r2i  = {r:i for i,r in enumerate(relations)}
+        self.w2i = {w:i for i,w in enumerate(words)}
+        self.t2i = {t:i for i,t in enumerate(tags)}
 
         self.w_embed_size = w_embed_size
         self.t_embed_size = t_embed_size
@@ -36,6 +37,8 @@ class ArcHybridParser:
         self.lstm_num_layers = lstm_num_layers
         self.dep_op_hidden_size = dep_op_hidden_size
         self.dep_lbl_hidden_size = dep_lbl_hidden_size
+        self.ev_op_hidden_size = ev_op_hidden_size
+        self.ev_lbl_hidden_size = ev_lbl_hidden_size
         self.alpha = alpha
         self.p_explore = p_explore
 
@@ -70,15 +73,31 @@ class ArcHybridParser:
 
         # fully connected network with one hidden layer
         # to predict the arc label
-        out_size = 1 + len(self.i2r) * 2
+        out_size = 1 + len(self.dep_relations) * 2
         self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 4))
         self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
         self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
         self.dep_lbl_output_bias = self.model.add_parameters((out_size))
 
+        # fully connected network with one hidden layer
+        # to predict the transition to take next
+        out_size = 4 # shift, left_arc, right_arc, drop
+        self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.lstm_hidden_size * 4))
+        self.ev_op_hidden_bias = self.model.add_parameters((self.ev_op_hidden_size))
+        self.ev_op_output      = self.model.add_parameters((out_size, self.ev_op_hidden_size))
+        self.ev_op_output_bias = self.model.add_parameters((out_size))
+
+        # fully connected network with one hidden layer
+        # to predict the arc label
+        out_size = 1 + len(self.ev_relations) * 2
+        self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.lstm_hidden_size * 4))
+        self.ev_lbl_hidden_bias = self.model.add_parameters((self.ev_lbl_hidden_size))
+        self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
+        self.ev_lbl_output_bias = self.model.add_parameters((out_size))
+
     def save(self, name):
         params = (
-            self.word_count, self.i2w, self.i2t, self.i2r,
+            self.word_count, self.i2w, self.i2t, self.dep_relations,
             self.w_embed_size, self.t_embed_size,
             self.lstm_hidden_size // 2, self.lstm_num_layers,
             self.dep_op_hidden_size, self.dep_lbl_hidden_size,
@@ -124,7 +143,7 @@ class ArcHybridParser:
         outputs = self.bilstm.transduce(inputs)
         return outputs
 
-    def evaluate(self, stack, buffer, features):
+    def evaluate_dependencies(self, stack, buffer, features):
         # construct input vector
         b = features[buffer[0].id] if len(buffer) > 0 else self.empty
         s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
@@ -162,7 +181,7 @@ class ArcHybridParser:
             state = ArcHybrid(sentence)
             # parse sentence
             while not state.is_terminal():
-                dy_op_scores, dy_lbl_scores = self.evaluate(state.stack, state.buffer, features)
+                dy_op_scores, dy_lbl_scores = self.evaluate_dependencies(state.stack, state.buffer, features)
 
                 # get scores in numpy arrays
                 np_op_scores = dy_op_scores.npvalue()
@@ -176,13 +195,13 @@ class ArcHybridParser:
                     legal_transitions.append(t)
                 if state.is_legal('left_arc'):
                     ix = state.t2i['left_arc']
-                    for j,r in enumerate(self.i2r):
+                    for j,r in enumerate(self.dep_relations):
                         k = 1 + 2 * j
                         t = Transition('left_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
                 if state.is_legal('right_arc'):
                     ix = state.t2i['right_arc']
-                    for j,r in enumerate(self.i2r):
+                    for j,r in enumerate(self.dep_relations):
                         k = 2 + 2 * j
                         t = Transition('right_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
@@ -252,8 +271,8 @@ class ArcHybridParser:
             op_scores = op_scores.npvalue()
             lbl_scores = lbl_scores.npvalue()
             # select transition
-            left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.i2r))
-            right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.i2r))
+            left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.dep_relations))
+            right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.dep_relations))
 
             # collect all legal transitions
             transitions = []
