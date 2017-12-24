@@ -5,13 +5,14 @@ from collections import namedtuple
 from operator import attrgetter, itemgetter
 import dynet as dy
 import numpy as np
-from transition_systems import ArcHybrid
+from transition_systems import ArcHybrid, ArcHybridWithDrop
 
 Transition = namedtuple('Transition', 'op label score dy_score')
 
 class ArcHybridParser:
 
-    def __init__(self, word_count, words, tags, dep_relations,
+    def __init__(self, word_count, words, tags,
+            dep_relations, ev_relations,
             w_embed_size, t_embed_size,
             lstm_hidden_size, lstm_num_layers,
             dep_op_hidden_size, dep_lbl_hidden_size,
@@ -25,7 +26,7 @@ class ArcHybridParser:
         self.i2w = words
         self.i2t = tags
         self.dep_relations = dep_relations
-        self.ev_relations = [] # TODO get event relations from constructor argument
+        self.ev_relations = ev_relations
 
         # mapings from terms to ids
         self.w2i = {w:i for i,w in enumerate(words)}
@@ -97,10 +98,12 @@ class ArcHybridParser:
 
     def save(self, name):
         params = (
-            self.word_count, self.i2w, self.i2t, self.dep_relations,
+            self.word_count, self.i2w, self.i2t,
+            self.dep_relations, self.ev_relations,
             self.w_embed_size, self.t_embed_size,
             self.lstm_hidden_size // 2, self.lstm_num_layers,
             self.dep_op_hidden_size, self.dep_lbl_hidden_size,
+            self.ev_op_hidden_size, self.ev_lbl_hidden_size,
             self.alpha, self.p_explore
         )
         # save model
@@ -159,7 +162,29 @@ class ArcHybridParser:
         # return scores
         return op_output, lbl_output
 
-    def train(self, sentences):
+    def evaluate_events(self, stack, buffer, features):
+        # construct input vector
+        b = features[buffer[0].id] if len(buffer) > 0 else self.empty
+        s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
+        s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
+        s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
+        input = dy.concatenate([b, s0, s1, s2])
+        # predict action
+        op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
+        op_output = self.ev_op_output.expr() * op_hidden + self.ev_op_output_bias.expr()
+        # predict label
+        lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
+        lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
+        # return scores
+        return op_output, lbl_output
+
+    def train_dependencies(self, sentences):
+        self._train(sentences, ArcHybrid, self.evaluate_dependencies)
+
+    def train_events(self, sentences):
+        self._train(sentences, ArcHybridWithDrop, self.evaluate_events)
+
+    def _train(self, sentences, transition_system, evaluate):
         start_chunk = time.time()
         start_all = time.time()
         loss_chunk = 0
@@ -178,10 +203,10 @@ class ArcHybridParser:
             # assign embedding to each word
             features = self.extract_features(sentence, drop_word=True)
             # initialize sentence parse
-            state = ArcHybrid(sentence)
+            state = transition_system(sentence)
             # parse sentence
             while not state.is_terminal():
-                dy_op_scores, dy_lbl_scores = self.evaluate_dependencies(state.stack, state.buffer, features)
+                dy_op_scores, dy_lbl_scores = evaluate(state.stack, state.buffer, features)
 
                 # get scores in numpy arrays
                 np_op_scores = dy_op_scores.npvalue()

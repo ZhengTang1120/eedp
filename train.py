@@ -6,7 +6,7 @@ from parsers import ArcHybridParser
 
 def make_parser(args, word_count, words, tags, rels):
     return ArcHybridParser(
-        word_count, words, tags, rels,
+        word_count, words, tags, rels, [],
         args.w_embed_dim,
         args.t_embed_dim,
         args.lstm_hidden_size,
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     for epoch in range(args.epochs):
         print('epoch', epoch + 1)
         random.shuffle(sentences)
-        parser.train(sentences)
+        parser.train_dependencies(sentences)
         name = f'{args.outdir}/parser{epoch+1:03}'
         print('saving', name)
         parser.save(name)
