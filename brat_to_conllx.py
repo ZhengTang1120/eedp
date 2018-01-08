@@ -42,7 +42,18 @@ def brat_to_conllx(text, annotations):
             print('ERROR: tokenization does not align')
             skipped_sentences += 1
             continue
-        yield conllx
+        yield make_projective(conllx)
+
+def make_projective(entries):
+    num_dependents = defaultdict(int)
+    for e in entries:
+        num_dependents[e.parent_id] += 1
+    for e in entries:
+        if e.parent_id == 0 and num_dependents[e.id] == 0:
+            e.parent_id = e.head = -1
+            e.relation = e.deprel = 'none'
+            e.brat_label = e.feats = None
+    return entries
 
 def get_tbm(annotations, start, end):
     """returns the corresponding textbound mention"""
@@ -72,6 +83,7 @@ def get_relhead(annotations, starts, ends, tbm, tok):
         if a.id.startswith('E') and a.trigger == mention_id:
             mention_id = a.id
     # if mention is involved in an event, point to the event trigger
+    relheads = []
     for a in annotations:
         if a.id.startswith('E'):
             for rel, args in a.arguments.items():
@@ -80,7 +92,9 @@ def get_relhead(annotations, starts, ends, tbm, tok):
                         head = get_mention_head(annotations, ends, a.trigger)
                         # collapse theme1, theme2, etc. into theme
                         rel = rel[:-1] if rel[-1].isdigit() else rel
-                        return rel, head
+                        relheads.append((rel, head))
+    if relheads:
+        return relheads[-1]
     # if token has no parent then point it to the root
     return 'root', 0
 

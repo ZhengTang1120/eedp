@@ -49,6 +49,29 @@ def make_vocabularies(sentences):
 
 
 
+def make_vocabularies2(sentences, events):
+    """gets a corpus and returns (word counts, words, tags, dependencies, events)"""
+    word_count = Counter()
+    tag_count = Counter()
+    dep_relation_count = Counter()
+    ev_relation_count = Counter()
+    for sentence in sentences:
+        word_count.update(e.norm for e in sentence)
+        tag_count.update(e.postag for e in sentence)
+        dep_relation_count.update(e.relation for e in sentence)
+    for event in events:
+        word_count.update(e.norm for e in event)
+        tag_count.update(e.postag for e in event)
+        ev_relation_count.update(e.relation for e in event if e.relation != 'none')
+    special = ['*unk*', '*pad*']
+    words = special + list(word_count.keys())
+    tags = special + list(tag_count.keys())
+    dep_rels = list(dep_relation_count.keys())
+    ev_rels = list(ev_relation_count.keys())
+    return (word_count, words, tags, dep_rels, ev_rels)
+
+
+
 def gen_conllx(filename, non_proj=False):
     """
     Reads dependency annotations in CoNLL-X format and returns a generator.

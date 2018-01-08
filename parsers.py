@@ -3,6 +3,10 @@ import random
 import pickle
 from collections import namedtuple
 from operator import attrgetter, itemgetter
+
+import dynet_config
+dynet_config.set(random_seed=1)
+
 import dynet as dy
 import numpy as np
 from transition_systems import ArcHybrid, ArcHybridWithDrop
@@ -179,12 +183,12 @@ class ArcHybridParser:
         return op_output, lbl_output
 
     def train_dependencies(self, sentences):
-        self._train(sentences, ArcHybrid, self.evaluate_dependencies)
+        self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations)
 
     def train_events(self, sentences):
-        self._train(sentences, ArcHybridWithDrop, self.evaluate_events)
+        self._train(sentences, ArcHybridWithDrop, self.evaluate_events, self.ev_relations)
 
-    def _train(self, sentences, transition_system, evaluate):
+    def _train(self, sentences, transition_system, evaluate, relations):
         start_chunk = time.time()
         start_all = time.time()
         loss_chunk = 0
@@ -220,13 +224,13 @@ class ArcHybridParser:
                     legal_transitions.append(t)
                 if state.is_legal('left_arc'):
                     ix = state.t2i['left_arc']
-                    for j,r in enumerate(self.dep_relations):
+                    for j,r in enumerate(relations):
                         k = 1 + 2 * j
                         t = Transition('left_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
                 if state.is_legal('right_arc'):
                     ix = state.t2i['right_arc']
-                    for j,r in enumerate(self.dep_relations):
+                    for j,r in enumerate(relations):
                         k = 2 + 2 * j
                         t = Transition('right_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
                         legal_transitions.append(t)
@@ -234,14 +238,22 @@ class ArcHybridParser:
                     ix = state.t2i['drop']
                     t = Transition('drop', None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
                     legal_transitions.append(t)
+                print('---')
+                print('legal',legal_transitions)
 
                 # collect all correct transitions
                 correct_transitions = []
                 for t in legal_transitions:
                     if state.is_correct(t[0]):
-                        if t.op == 'shift' or t.label == state.stack[-1].relation:
+                        if t.op not in ['shift', 'drop']:
+                            print(t.label, state.stack[-1].relation)
+                        if t.op in ['shift', 'drop'] or t.label == state.stack[-1].relation:
                             correct_transitions.append(t)
 
+                print('correct',correct_transitions)
+                print('sentence',sentence)
+                print(state.stack)
+                print(state.buffer)
                 # select transition
                 best_legal = max(legal_transitions, key=attrgetter('score'))
                 best_correct = max(correct_transitions, key=attrgetter('score'))
