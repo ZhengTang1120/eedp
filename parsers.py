@@ -16,11 +16,11 @@ Transition = namedtuple('Transition', 'op label score dy_score')
 class ArcHybridParser:
 
     def __init__(self, word_count, words, tags,
-            dep_relations, ev_relations,
+            dep_relations, #ev_relations,
             w_embed_size, t_embed_size,
             lstm_hidden_size, lstm_num_layers,
             dep_op_hidden_size, dep_lbl_hidden_size,
-            ev_op_hidden_size, ev_lbl_hidden_size,
+            #ev_op_hidden_size, ev_lbl_hidden_size,
             alpha, p_explore):
 
         # counts used for word dropout
@@ -30,7 +30,7 @@ class ArcHybridParser:
         self.i2w = words
         self.i2t = tags
         self.dep_relations = dep_relations
-        self.ev_relations = ev_relations
+        #self.ev_relations = ev_relations
 
         # mapings from terms to ids
         self.w2i = {w:i for i,w in enumerate(words)}
@@ -42,8 +42,8 @@ class ArcHybridParser:
         self.lstm_num_layers = lstm_num_layers
         self.dep_op_hidden_size = dep_op_hidden_size
         self.dep_lbl_hidden_size = dep_lbl_hidden_size
-        self.ev_op_hidden_size = ev_op_hidden_size
-        self.ev_lbl_hidden_size = ev_lbl_hidden_size
+        #self.ev_op_hidden_size = ev_op_hidden_size
+        #self.ev_lbl_hidden_size = ev_lbl_hidden_size
         self.alpha = alpha
         self.p_explore = p_explore
 
@@ -84,21 +84,21 @@ class ArcHybridParser:
         self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
         self.dep_lbl_output_bias = self.model.add_parameters((out_size))
 
-        # fully connected network with one hidden layer
-        # to predict the transition to take next
-        out_size = 4 # shift, left_arc, right_arc, drop
-        self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.lstm_hidden_size * 4))
-        self.ev_op_hidden_bias = self.model.add_parameters((self.ev_op_hidden_size))
-        self.ev_op_output      = self.model.add_parameters((out_size, self.ev_op_hidden_size))
-        self.ev_op_output_bias = self.model.add_parameters((out_size))
+        # # fully connected network with one hidden layer
+        # # to predict the transition to take next
+        # out_size = 4 # shift, left_arc, right_arc, drop
+        # self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.lstm_hidden_size * 4))
+        # self.ev_op_hidden_bias = self.model.add_parameters((self.ev_op_hidden_size))
+        # self.ev_op_output      = self.model.add_parameters((out_size, self.ev_op_hidden_size))
+        # self.ev_op_output_bias = self.model.add_parameters((out_size))
 
-        # fully connected network with one hidden layer
-        # to predict the arc label
-        out_size = 1 + len(self.ev_relations) * 2
-        self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.lstm_hidden_size * 4))
-        self.ev_lbl_hidden_bias = self.model.add_parameters((self.ev_lbl_hidden_size))
-        self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
-        self.ev_lbl_output_bias = self.model.add_parameters((out_size))
+        # # fully connected network with one hidden layer
+        # # to predict the arc label
+        # out_size = 1 + len(self.ev_relations) * 2
+        # self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.lstm_hidden_size * 4))
+        # self.ev_lbl_hidden_bias = self.model.add_parameters((self.ev_lbl_hidden_size))
+        # self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
+        # self.ev_lbl_output_bias = self.model.add_parameters((out_size))
 
     def save(self, name):
         params = (
@@ -238,22 +238,23 @@ class ArcHybridParser:
                     ix = state.t2i['drop']
                     t = Transition('drop', None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
                     legal_transitions.append(t)
-                print('---')
-                print('legal',legal_transitions)
+                #print('---')
+                #print('legal',legal_transitions)
 
                 # collect all correct transitions
                 correct_transitions = []
                 for t in legal_transitions:
                     if state.is_correct(t[0]):
                         if t.op not in ['shift', 'drop']:
-                            print(t.label, state.stack[-1].relation)
+                            pass
+                            #print(t.label, state.stack[-1].relation)
                         if t.op in ['shift', 'drop'] or t.label == state.stack[-1].relation:
                             correct_transitions.append(t)
 
-                print('correct',correct_transitions)
-                print('sentence',sentence)
-                print(state.stack)
-                print(state.buffer)
+                #print('correct',correct_transitions)
+                #print('sentence',sentence)
+                #print(state.stack)
+                #print(state.buffer)
                 # select transition
                 best_legal = max(legal_transitions, key=attrgetter('score'))
                 best_correct = max(correct_transitions, key=attrgetter('score'))
