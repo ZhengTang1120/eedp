@@ -118,6 +118,14 @@ def is_projective(sentence):
     # we need to find the parent of each word in the sentence
     for _ in range(len(sentence)):
         # only consider the forest roots
+        for i in range(len(roots)):
+            if roots[i].parent_id == -1 and unassigned[roots[i].id] == 0 and roots[i].id != 0:
+                del roots[i]
+                break
+    rc = roots.copy()
+    # we need to find the parent of each word in the sentence
+    for _ in range(len(sentence)):
+        # only consider the forest roots
         for i in range(len(roots) - 1):
             # attach entries if:
             #   - they are parent-child
@@ -131,6 +139,8 @@ def is_projective(sentence):
                 unassigned[roots[i].id] -= 1
                 del roots[i+1]
                 break
+        if len(roots) > 1 and roots[-1].parent_id == -1:
+            del roots[-1]
     # if more than one root remains then it is not projective
     return len(roots) == 1
 

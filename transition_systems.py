@@ -27,7 +27,7 @@ class ArcHybrid:
 
     # this is only valid for legal transitions
     def is_correct(self, transition):
-        # print('cost', transition, self.cost(transition))
+        print('cost', transition, self.cost(transition))
         return self.cost(transition) == 0
 
     # this is only valid for legal transitions

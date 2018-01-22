@@ -37,11 +37,14 @@ def brat_to_conllx(text, annotations):
                 rel, head = get_relhead(annotations, starts, ends, tbm, i)
                 entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label, head=head, deprel=rel)
                 conllx.append(entry)
-        except ValueError:
+        except Exception as e:
             # get_mention_head() searches for the token's end position
             # in the `ends` list that corresponds to the sentence's tokens,
             # and throws an exception if the provided end does not correspond to any token
             print('ERROR: tokenization does not align')
+            print(e)
+            print(words)
+            print(ends)
             skipped_sentences += 1
             continue
         yield make_projective(conllx)
@@ -67,8 +70,13 @@ def get_mention_head(annotations, ends, mention_id):
     """returns the head token for the given mention id"""
     for a in annotations:
         if a.id == mention_id:
-            i = ends.index(a.end)
-            return i + 1
+            try:
+                i = ends.index(a.end)
+                return i + 1
+            except ValueError:
+                raise Exception(a)
+            # i = ends.index(a.end)
+            # return i + 1
 
 def get_relhead(annotations, starts, ends, tbm, tok):
     """returns the correct relation and head for the given textbound mention"""
@@ -91,14 +99,24 @@ def get_relhead(annotations, starts, ends, tbm, tok):
             for rel, args in a.arguments.items():
                 for arg in args:
                     if arg == mention_id:
-                        head = get_mention_head(annotations, ends, a.trigger)
-                        # collapse theme1, theme2, etc. into theme
-                        rel = rel[:-1] if rel[-1].isdigit() else rel
-                        relheads.append((rel, head))
+                        if checkTrigger(a.trigger, starts, ends, annotations):
+                            head = get_mention_head(annotations, ends, a.trigger)
+                            # collapse theme1, theme2, etc. into theme
+                            rel = rel[:-1] if rel[-1].isdigit() else rel
+                            relheads.append((rel, head))
     if relheads:
         return relheads[-1]
     # if token has no parent then point it to the root
     return 'root', 0
+
+def checkTrigger(trigger, starts, ends, annotations):
+    for a in annotations:
+        if a.id == trigger:
+            if a.start>=starts[0] and a.end<=ends[-1]:
+                return True
+            else:
+                return False
+    return False
 
 def parse_annotations(annotations):
     for line in annotations.splitlines():
