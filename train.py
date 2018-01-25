@@ -3,6 +3,7 @@
 import argparse, random
 from utils import *
 from parsers import ArcHybridParser
+import os
 
 def make_parser(args, word_count, words, tags, ev_rels, entities):
     return ArcHybridParser(
@@ -40,6 +41,9 @@ if __name__ == '__main__':
     parser.add_argument('--alpha',               type=float, default=0.25) # for word dropout
     parser.add_argument('--p_explore',           type=float, default=0.0)
     args = parser.parse_args()
+
+    if not os.path.exists(args.outdir):
+        os.makedirs(args.outdir)
 
     print('loading ...')
     # sentences = read_conllx(args.depsfile, non_proj=False)
