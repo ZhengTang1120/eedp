@@ -47,7 +47,23 @@ def make_vocabularies(sentences):
     rels = list(relation_count.keys())
     return (word_count, words, tags, rels)
 
-
+def make_vocabularies3(events):
+    """gets a corpus and returns (word counts, words, tags, relations)"""
+    word_count = Counter()
+    tag_count = Counter()
+    relation_count = Counter()
+    entity_count = Counter()
+    for event in events:
+        word_count.update(e.norm for e in event)
+        tag_count.update(e.postag for e in event)
+        relation_count.update(e.relation for e in event if e.relation != 'none')
+        entity_count.update(('O' if e.feats is None else e.feats) for e in event)
+    special = ['*unk*', '*pad*']
+    words = special + list(word_count.keys())
+    tags = special + list(tag_count.keys())
+    rels = list(relation_count.keys())
+    entities = list(entity_count.keys())
+    return (word_count, words, tags, rels, entities)
 
 def make_vocabularies2(sentences, events):
     """gets a corpus and returns (word counts, words, tags, dependencies, events)"""
@@ -122,7 +138,6 @@ def is_projective(sentence):
             if roots[i].parent_id == -1 and unassigned[roots[i].id] == 0 and roots[i].id != 0:
                 del roots[i]
                 break
-    rc = roots.copy()
     # we need to find the parent of each word in the sentence
     for _ in range(len(sentence)):
         # only consider the forest roots

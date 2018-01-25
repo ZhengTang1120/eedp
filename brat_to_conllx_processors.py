@@ -63,7 +63,7 @@ def make_projective(entries):
 def get_tbm(annotations, start, end):
     """returns the corresponding textbound mention"""
     for a in annotations:
-        if a.id.startswith('T') and a.start <= start and a.end >= end:
+        if a.id.startswith('T') and a.start <= end and start <= a.end:
             return a
 
 def get_mention_head(annotations, ends, mention_id):

@@ -16,7 +16,7 @@ Transition = namedtuple('Transition', 'op label score dy_score')
 class ArcHybridParser:
 
     def __init__(self, word_count, words, tags,
-            dep_relations, ev_relations,
+            ev_relations, entities,
             w_embed_size, t_embed_size,
             lstm_hidden_size, lstm_num_layers,
             dep_op_hidden_size, dep_lbl_hidden_size,
@@ -29,7 +29,7 @@ class ArcHybridParser:
         # mappings from ids to terms
         self.i2w = words
         self.i2t = tags
-        self.dep_relations = dep_relations
+        # self.dep_relations = dep_relations
         self.ev_relations = ev_relations
 
         # mapings from terms to ids
@@ -70,19 +70,19 @@ class ArcHybridParser:
 
         # fully connected network with one hidden layer
         # to predict the transition to take next
-        out_size = 3 # shift, left_arc, right_arc
-        self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 4))
-        self.dep_op_hidden_bias = self.model.add_parameters((self.dep_op_hidden_size))
-        self.dep_op_output      = self.model.add_parameters((out_size, self.dep_op_hidden_size))
-        self.dep_op_output_bias = self.model.add_parameters((out_size))
+        # out_size = 3 # shift, left_arc, right_arc
+        # self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 4))
+        # self.dep_op_hidden_bias = self.model.add_parameters((self.dep_op_hidden_size))
+        # self.dep_op_output      = self.model.add_parameters((out_size, self.dep_op_hidden_size))
+        # self.dep_op_output_bias = self.model.add_parameters((out_size))
 
-        # fully connected network with one hidden layer
-        # to predict the arc label
-        out_size = 1 + len(self.dep_relations) * 2
-        self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 4))
-        self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
-        self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
-        self.dep_lbl_output_bias = self.model.add_parameters((out_size))
+        # # fully connected network with one hidden layer
+        # # to predict the arc label
+        # out_size = 1 + len(self.dep_relations) * 2
+        # self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 4))
+        # self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
+        # self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
+        # self.dep_lbl_output_bias = self.model.add_parameters((out_size))
 
         # fully connected network with one hidden layer
         # to predict the transition to take next

@@ -4,10 +4,10 @@ import argparse, random
 from utils import *
 from parsers import ArcHybridParser
 
-def make_parser(args, word_count, words, tags, dep_rels, ev_rels):
+def make_parser(args, word_count, words, tags, ev_rels, entities):
     return ArcHybridParser(
         word_count, words, tags,
-        dep_rels, ev_rels,
+        ev_rels, entities,
         args.w_embed_dim,
         args.t_embed_dim,
         args.lstm_hidden_size,
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     random.seed(1)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('depsfile')
+    # parser.add_argument('depsfile')
     parser.add_argument('evsfile')
     parser.add_argument('--outdir', default='out')
     parser.add_argument('--w_embed_dim',         type=int,   default=100)
@@ -38,13 +38,13 @@ if __name__ == '__main__':
     parser.add_argument('--ev_lbl_hidden_size',  type=int,   default=100)
     parser.add_argument('--epochs',              type=int,   default=30)
     parser.add_argument('--alpha',               type=float, default=0.25) # for word dropout
-    parser.add_argument('--p_explore',           type=float, default=0.1)
+    parser.add_argument('--p_explore',           type=float, default=0.0)
     args = parser.parse_args()
 
     print('loading ...')
-    sentences = read_conllx(args.depsfile, non_proj=False)
-    events = read_conllx(args.evsfile, non_proj=True)
-    vocabularies = make_vocabularies2(sentences, events)
+    # sentences = read_conllx(args.depsfile, non_proj=False)
+    events = read_conllx(args.evsfile)
+    vocabularies = make_vocabularies3(events)
     parser = make_parser(args, *vocabularies)
 
     print('training ...')
