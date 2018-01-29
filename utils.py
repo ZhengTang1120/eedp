@@ -57,12 +57,12 @@ def make_vocabularies3(events):
         word_count.update(e.norm for e in event)
         tag_count.update(e.postag for e in event)
         relation_count.update(e.relation for e in event if e.relation != 'none')
-        entity_count.update(('O' if e.feats is None else e.feats) for e in event)
+        entity_count.update(e.feats for e in event)
     special = ['*unk*', '*pad*']
     words = special + list(word_count.keys())
     tags = special + list(tag_count.keys())
     rels = list(relation_count.keys())
-    entities = list(entity_count.keys())
+    entities = special + list(entity_count.keys())
     return (word_count, words, tags, rels, entities)
 
 def make_vocabularies2(sentences, events):

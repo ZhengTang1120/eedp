@@ -40,6 +40,7 @@ class ArcHybridParser:
 
         self.w_embed_size = w_embed_size
         self.t_embed_size = t_embed_size
+        self.e_embed_size = e_embed_size
         self.lstm_hidden_size = lstm_hidden_size * 2 # must be even
         self.lstm_num_layers = lstm_num_layers
         self.dep_op_hidden_size = dep_op_hidden_size
@@ -60,7 +61,7 @@ class ArcHybridParser:
         # feature extractor
         self.bilstm = dy.BiRNNBuilder(
                 self.lstm_num_layers,
-                self.w_embed_size + self.t_embed_size,
+                self.w_embed_size + self.t_embed_size + self.e_embed_size,
                 self.lstm_hidden_size,
                 self.model,
                 dy.VanillaLSTMBuilder,
@@ -133,7 +134,7 @@ class ArcHybridParser:
         w_pad = self.wlookup[self.w2i['*pad*']]
         t_pad = self.tlookup[self.t2i['*pad*']]
         e_pad = self.elookup[self.e2i['*pad*']]
-        v_pad = dy.concatenate([w_pad, t_pad])
+        v_pad = dy.concatenate([w_pad, t_pad, e_pad])
         i_vec = self.word_to_lstm.expr() * v_pad + self.word_to_lstm_bias.expr()
         self.empty = dy.tanh(i_vec)
 
