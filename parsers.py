@@ -17,7 +17,7 @@ class ArcHybridParser:
 
     def __init__(self, word_count, words, tags,
             ev_relations, entities,
-            w_embed_size, t_embed_size,
+            w_embed_size, t_embed_size, e_embed_size,
             lstm_hidden_size, lstm_num_layers,
             dep_op_hidden_size, dep_lbl_hidden_size,
             ev_op_hidden_size, ev_lbl_hidden_size,
@@ -29,12 +29,14 @@ class ArcHybridParser:
         # mappings from ids to terms
         self.i2w = words
         self.i2t = tags
+        self.i2e = entities
         # self.dep_relations = dep_relations
         self.ev_relations = ev_relations
 
         # mapings from terms to ids
         self.w2i = {w:i for i,w in enumerate(words)}
         self.t2i = {t:i for i,t in enumerate(tags)}
+        self.e2i = {e:i for i,e in enumerate(entities)}
 
         self.w_embed_size = w_embed_size
         self.t_embed_size = t_embed_size
@@ -50,9 +52,10 @@ class ArcHybridParser:
         self.model = dy.Model()
         self.trainer = dy.AdamTrainer(self.model)
 
-        # words and tags embeddings
+        # words and tags, entities embeddings
         self.wlookup = self.model.add_lookup_parameters((len(self.i2w), self.w_embed_size))
         self.tlookup = self.model.add_lookup_parameters((len(self.i2t), self.t_embed_size))
+        self.elookup = self.model.add_lookup_parameters((len(self.i2e), self.e_embed_size))
 
         # feature extractor
         self.bilstm = dy.BiRNNBuilder(
@@ -65,7 +68,7 @@ class ArcHybridParser:
 
         # transform word+pos vector into a vector similar to the lstm output
         # used to generate padding vectors
-        self.word_to_lstm      = self.model.add_parameters((self.lstm_hidden_size, self.w_embed_size + self.t_embed_size))
+        self.word_to_lstm      = self.model.add_parameters((self.lstm_hidden_size, self.w_embed_size + self.t_embed_size + self.e_embed_size))
         self.word_to_lstm_bias = self.model.add_parameters((self.lstm_hidden_size))
 
         # fully connected network with one hidden layer
@@ -106,7 +109,7 @@ class ArcHybridParser:
         params = (
             self.word_count, self.i2w, self.i2t,
             self.ev_relations, self.entities,
-            self.w_embed_size, self.t_embed_size,
+            self.w_embed_size, self.t_embed_size, self.e_embed_size,
             self.lstm_hidden_size // 2, self.lstm_num_layers,
             self.dep_op_hidden_size, self.dep_lbl_hidden_size,
             self.ev_op_hidden_size, self.ev_lbl_hidden_size,
@@ -129,6 +132,7 @@ class ArcHybridParser:
     def set_empty_vector(self):
         w_pad = self.wlookup[self.w2i['*pad*']]
         t_pad = self.tlookup[self.t2i['*pad*']]
+        e_pad = self.elookup[self.e2i['*pad*']]
         v_pad = dy.concatenate([w_pad, t_pad])
         i_vec = self.word_to_lstm.expr() * v_pad + self.word_to_lstm_bias.expr()
         self.empty = dy.tanh(i_vec)
@@ -144,10 +148,12 @@ class ArcHybridParser:
             # get word and tag ids
             w_id = unk if drop_word else self.w2i.get(entry.norm, unk)
             t_id = self.t2i[entry.postag]
+            e_id = self.e2i[entry.feats]
             # get word and tag embbedding in the corresponding entry
             w_vec = self.wlookup[w_id]
             t_vec = self.tlookup[t_id]
-            i_vec = dy.concatenate([w_vec, t_vec])
+            e_vec = self.elookup[e_id]
+            i_vec = dy.concatenate([w_vec, t_vec, e_vec])
             inputs.append(i_vec)
         outputs = self.bilstm.transduce(inputs)
         return outputs

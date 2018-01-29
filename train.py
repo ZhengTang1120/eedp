@@ -11,6 +11,7 @@ def make_parser(args, word_count, words, tags, ev_rels, entities):
         ev_rels, entities,
         args.w_embed_dim,
         args.t_embed_dim,
+        args.e_embed_dim,
         args.lstm_hidden_size,
         args.lstm_num_layers,
         args.dep_op_hidden_size,
@@ -31,6 +32,7 @@ if __name__ == '__main__':
     parser.add_argument('--outdir', default='out')
     parser.add_argument('--w_embed_dim',         type=int,   default=100)
     parser.add_argument('--t_embed_dim',         type=int,   default=25)
+    parser.add_argument('--e_embed_dim',         type=int,   default=25)
     parser.add_argument('--lstm_hidden_size',    type=int,   default=125)
     parser.add_argument('--lstm_num_layers',     type=int,   default=2)
     parser.add_argument('--dep_op_hidden_size',  type=int,   default=100)
