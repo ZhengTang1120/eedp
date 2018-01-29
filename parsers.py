@@ -302,16 +302,16 @@ class ArcHybridParser:
         # assign embedding to each word
         features = self.extract_features(sentence)
         # initialize sentence parse
-        state = ArcHybrid(sentence)
+        state = ArcHybridWithDrop(sentence)
         # parse sentence
         while not state.is_terminal():
-            op_scores, lbl_scores = self.evaluate(state.stack, state.buffer, features)
+            op_scores, lbl_scores = self.evaluate_events(state.stack, state.buffer, features)
             # get numpy arrays
             op_scores = op_scores.npvalue()
             lbl_scores = lbl_scores.npvalue()
             # select transition
-            left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.dep_relations))
-            right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.dep_relations))
+            left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.ev_relations))
+            right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.ev_relations))
 
             # collect all legal transitions
             transitions = []
