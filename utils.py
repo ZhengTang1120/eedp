@@ -95,7 +95,7 @@ def gen_conllx(filename, non_proj=False):
     """
     read = 0
     dropped = 0
-    root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel='rroot')
+    root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel='rroot', feats='O')
     with open(filename) as f:
         sentence = [root]
         for line in f:

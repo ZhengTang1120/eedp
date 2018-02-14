@@ -109,6 +109,7 @@ class ArcHybridParser:
         self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
         self.ev_lbl_output_bias = self.model.add_parameters((out_size))
 
+        entities.append("Protein")
         self.entities = entities
 
         # fully connected network with one hidden layer
@@ -215,6 +216,9 @@ class ArcHybridParser:
         self._train(sentences, ArcHybridWithDrop, self.evaluate_events, self.ev_relations)
 
     def _train(self, sentences, transition_system, evaluate, relations):
+        print (self.entities)
+        print (self.tg2i)
+        exit()
         start_chunk = time.time()
         start_all = time.time()
         loss_chunk = 0
