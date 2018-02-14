@@ -62,7 +62,7 @@ def make_vocabularies3(events):
     words = special + list(word_count.keys())
     tags = special + list(tag_count.keys())
     rels = list(relation_count.keys())
-    entities = special + list(entity_count.keys())
+    entities = list(entity_count.keys())
     return (word_count, words, tags, rels, entities)
 
 def make_vocabularies2(sentences, events):

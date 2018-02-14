@@ -5,6 +5,7 @@ from collections import namedtuple, defaultdict
 from processors import *
 from utils import *
 import json
+import itertools
 
 API = ProcessorsBaseAPI(port=8888)
 
@@ -127,8 +128,16 @@ if __name__ == '__main__':
         for e in events:
             line = e[0]+"\t"+e[1]+":"+e[2]
             k_list = list(e[-1].keys())
+            if e[1] == "Binding" and len(e[-1]["Theme"]) > 1:
+                theme_list = e[-1]["Theme"]
+                pairs = list(itertools.combinations(theme_list, 2))
+                theme_list = list()
+                for p in pairs:
+                    theme_list.append(p[0]+" Theme2:"+p[1])
+                e[-1]["Theme"] = theme_list
             if "Theme" in k_list:
                 k_list.insert(0, k_list.pop(k_list.index("Theme")))
+            k_list = [k for k in k_list if k == "Theme" or k == "Cause"]
             for k in k_list:
                 line += " "+k+":"+e[-1][k][0]
             if str(line.split("\t")[1]) not in event_set:

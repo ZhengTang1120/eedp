@@ -21,6 +21,7 @@ class ArcHybridParser:
             lstm_hidden_size, lstm_num_layers,
             dep_op_hidden_size, dep_lbl_hidden_size,
             ev_op_hidden_size, ev_lbl_hidden_size,
+            tg_lbl_hidden_size,
             alpha, p_explore):
 
         # counts used for word dropout
@@ -29,14 +30,15 @@ class ArcHybridParser:
         # mappings from ids to terms
         self.i2w = words
         self.i2t = tags
-        self.i2e = entities
+        self.i2e = ["Protein", "O", "*pad*"]
         # self.dep_relations = dep_relations
         self.ev_relations = ev_relations
 
         # mapings from terms to ids
         self.w2i = {w:i for i,w in enumerate(words)}
         self.t2i = {t:i for i,t in enumerate(tags)}
-        self.e2i = {e:i for i,e in enumerate(entities)}
+        self.e2i = {e:i for i,e in enumerate(self.i2e)}
+        self.tg2i = {e:i for i,e in enumerate(entities)}
 
         self.w_embed_size = w_embed_size
         self.t_embed_size = t_embed_size
@@ -47,6 +49,7 @@ class ArcHybridParser:
         self.dep_lbl_hidden_size = dep_lbl_hidden_size
         self.ev_op_hidden_size = ev_op_hidden_size
         self.ev_lbl_hidden_size = ev_lbl_hidden_size
+        self.tg_lbl_hidden_size = tg_lbl_hidden_size
         self.alpha = alpha
         self.p_explore = p_explore
 
@@ -106,6 +109,14 @@ class ArcHybridParser:
 
         self.entities = entities
 
+        # fully connected network with one hidden layer
+        # to predict the trigger label
+        out_size = len(entities)
+        self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size))
+        self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
+        self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
+        self.tg_lbl_output_bias = self.model.add_parameters((out_size))
+
     def save(self, name):
         params = (
             self.word_count, self.i2w, self.i2t,
@@ -114,6 +125,7 @@ class ArcHybridParser:
             self.lstm_hidden_size // 2, self.lstm_num_layers,
             self.dep_op_hidden_size, self.dep_lbl_hidden_size,
             self.ev_op_hidden_size, self.ev_lbl_hidden_size,
+            self.tg_lbl_hidden_size,
             self.alpha, self.p_explore
         )
         # save model
@@ -133,7 +145,7 @@ class ArcHybridParser:
     def set_empty_vector(self):
         w_pad = self.wlookup[self.w2i['*pad*']]
         t_pad = self.tlookup[self.t2i['*pad*']]
-        e_pad = self.elookup[self.e2i['*pad*']]
+        e_pad = self.elookup[self.e2i['*pad*']] #??
         v_pad = dy.concatenate([w_pad, t_pad, e_pad])
         i_vec = self.word_to_lstm.expr() * v_pad + self.word_to_lstm_bias.expr()
         self.empty = dy.tanh(i_vec)
@@ -149,7 +161,7 @@ class ArcHybridParser:
             # get word and tag ids
             w_id = unk if drop_word else self.w2i.get(entry.norm, unk)
             t_id = self.t2i[entry.postag]
-            e_id = self.e2i[entry.feats]
+            e_id = self.e2i[entry.feats] if entry.feats == "Protein" else self.e2i["O"]
             # get word and tag embbedding in the corresponding entry
             w_vec = self.wlookup[w_id]
             t_vec = self.tlookup[t_id]
@@ -188,8 +200,11 @@ class ArcHybridParser:
         # predict label
         lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
         lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
+        # predict trigger label
+        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * b + self.tg_lbl_hidden_bias.expr())
+        tg_output = self.tg_lbl_output.expr() * lbl_hidden + self.tg_lbl_output_bias.expr()
         # return scores
-        return op_output, lbl_output
+        return op_output, lbl_output, tg_output
 
     def train_dependencies(self, sentences):
         self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations)
@@ -219,7 +234,7 @@ class ArcHybridParser:
             state = transition_system(sentence)
             # parse sentence
             while not state.is_terminal():
-                dy_op_scores, dy_lbl_scores = evaluate(state.stack, state.buffer, features)
+                dy_op_scores, dy_lbl_scores, dy_tg_scores = evaluate(state.stack, state.buffer, features)
 
                 # get scores in numpy arrays
                 np_op_scores = dy_op_scores.npvalue()
@@ -267,10 +282,12 @@ class ArcHybridParser:
                 best_legal = max(legal_transitions, key=attrgetter('score'))
                 best_correct = max(correct_transitions, key=attrgetter('score'))
 
+                # trigger label loss
+                tg_loss = dy.pickneglogsoftmax(dy_tg_scores, self.tg2i[state.buffer[0].feats]) 
                 # accumulate losses
-                loss = 1 - best_correct.score + best_legal.score
+                loss = 1 - best_correct.score + best_legal.score + tg_loss.npvalue()[0]
                 if best_legal != best_correct and loss > 0:
-                    losses.append(1 - best_correct.dy_score + best_legal.dy_score)
+                    losses.append(1 - best_correct.dy_score + best_legal.dy_score + tg_loss)
                     loss_chunk += loss
                     loss_all += loss
                 total_chunk += 1
