@@ -33,6 +33,7 @@ class ArcHybridParser:
         self.i2e = ["Protein", "O", "*pad*"]
         # self.dep_relations = dep_relations
         self.ev_relations = ev_relations
+        entities.pop(entities.index("Protein"))
         self.i2tg = entities
 
         # mapings from terms to ids
@@ -285,7 +286,8 @@ class ArcHybridParser:
                     best_correct = max(correct_transitions, key=attrgetter('score'))
 
                     # trigger label loss
-                    tg_loss = dy.pickneglogsoftmax(dy_tg_scores, self.tg2i[state.buffer[0].feats]) 
+                    tg_lbl = state.buffer[0].feats if state.buffer[0].feats!="Protein" else "O"
+                    tg_loss = dy.pickneglogsoftmax(dy_tg_scores, self.tg2i[tg_lbl]) 
                     # accumulate losses
                     loss = 1 - best_correct.score + best_legal.score + tg_loss.npvalue()[0]
                     if best_legal != best_correct and loss > 0:
