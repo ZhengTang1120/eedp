@@ -362,6 +362,8 @@ class ArcHybridParser:
             tg_lbl = self.i2tg[tg_idx]
             if state.buffer[0].feats != "Protein":
                 state.buffer[0].pred_feats = tg_lbl
+            else:
+                state.buffer[0].pred_feats = "Protein"
 
             # perform transition
             state.perform_transition(best_act, best_lbl)
