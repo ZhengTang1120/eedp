@@ -34,7 +34,7 @@ def brat_to_conllx(text, annotations, test=False):
             for i in range(len(words)):
                 tbm = get_tbm(annotations, starts[i], ends[i])
                 label = None if tbm is None else tbm.label
-                if label is None and test:
+                if label is None or test:
                     label = 'O'
                 rel, head = get_relhead(annotations, starts, ends, tbm, i)
                 entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label, head=head, deprel=rel)
