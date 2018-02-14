@@ -216,9 +216,6 @@ class ArcHybridParser:
         self._train(sentences, ArcHybridWithDrop, self.evaluate_events, self.ev_relations)
 
     def _train(self, sentences, transition_system, evaluate, relations):
-        print (self.entities)
-        print (self.tg2i)
-        exit()
         start_chunk = time.time()
         start_all = time.time()
         loss_chunk = 0
