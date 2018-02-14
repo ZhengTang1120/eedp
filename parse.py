@@ -19,7 +19,7 @@ if __name__ == '__main__':
     print('parsing ...')
     for i, s in enumerate(sentences):
         print('parsing sentence', i)
-        if len(s) > 1:
+        if len(s) > 2:
             parser.parse_sentence(s)
 
     print('writing output ...')
