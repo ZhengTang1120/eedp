@@ -17,7 +17,7 @@ skipped_sentences = 0
 
 API = ProcessorsBaseAPI(port=8888)
 
-def brat_to_conllx(text, annotations, test=False):
+def brat_to_conllx(text, annotations):
     """
     gets an annotation corresponding to a single paper
     and returns a sequence of sentences formatted as conllx
@@ -34,7 +34,7 @@ def brat_to_conllx(text, annotations, test=False):
             for i in range(len(words)):
                 tbm = get_tbm(annotations, starts[i], ends[i])
                 label = None if tbm is None else tbm.label
-                if label is None or test:
+                if label is None:
                     label = 'O'
                 rel, head = get_relhead(annotations, starts, ends, tbm, i)
                 entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label, head=head, deprel=rel)
@@ -170,7 +170,7 @@ if __name__ == '__main__':
         a1 = read(root + '.a1')
         a2 = read(root + '.a2')
         annotations = f'{a1}\n{a2}'
-        sentences += brat_to_conllx(txt, annotations, True)
+        sentences += brat_to_conllx(txt, annotations)
 
     print('---')
     print(f'{total_sentences:,} sentences')
