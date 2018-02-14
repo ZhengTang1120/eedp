@@ -102,6 +102,7 @@ def gen_conllx(filename, non_proj=False):
                 if non_proj or is_projective(sentence):
                     yield sentence
                 else:
+                    yield [ConllEntry(id=1, form='*dropped*', postag='*dropped*', head=-1, deprel='dropped', feats='O')]
                     dropped += 1
                 read += 1
                 sentence = [root]
@@ -111,10 +112,11 @@ def gen_conllx(filename, non_proj=False):
         # we may still have one sentence in memory
         # if the file doesn't end in an empty line
         if len(sentence) > 1:
-            if is_projective(sentence):
+            if is_projective(sentence) or non_proj:
                 yield sentence
             else:
                 dropped += 1
+                yield [ConllEntry(id=1, form='*dropped*', postag='*dropped*', head=-1, deprel='dropped', feats='O')]
             read += 1
     print(f'{read:,} sentences read.')
     print(f'{dropped:,} non-projective sentences dropped.')
