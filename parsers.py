@@ -229,75 +229,76 @@ class ArcHybridParser:
                 start_chunk = end
                 loss_chunk = 0
                 total_chunk = 0
-            # assign embedding to each word
-            features = self.extract_features(sentence, drop_word=True)
-            # initialize sentence parse
-            state = transition_system(sentence)
-            # parse sentence
-            while not state.is_terminal():
-                dy_op_scores, dy_lbl_scores, dy_tg_scores = evaluate(state.stack, state.buffer, features)
+            if len(sentence) > 2:
+                # assign embedding to each word
+                features = self.extract_features(sentence, drop_word=True)
+                # initialize sentence parse
+                state = transition_system(sentence)
+                # parse sentence
+                while not state.is_terminal():
+                    dy_op_scores, dy_lbl_scores, dy_tg_scores = evaluate(state.stack, state.buffer, features)
 
-                # get scores in numpy arrays
-                np_op_scores = dy_op_scores.npvalue()
-                np_lbl_scores = dy_lbl_scores.npvalue()
+                    # get scores in numpy arrays
+                    np_op_scores = dy_op_scores.npvalue()
+                    np_lbl_scores = dy_lbl_scores.npvalue()
 
-                # collect all legal transitions
-                legal_transitions = []
-                if state.is_legal('shift'):
-                    ix = state.t2i['shift']
-                    t = Transition('shift', None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
-                    legal_transitions.append(t)
-                if state.is_legal('left_arc'):
-                    ix = state.t2i['left_arc']
-                    for j,r in enumerate(relations):
-                        k = 1 + 2 * j
-                        t = Transition('left_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                    # collect all legal transitions
+                    legal_transitions = []
+                    if state.is_legal('shift'):
+                        ix = state.t2i['shift']
+                        t = Transition('shift', None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
                         legal_transitions.append(t)
-                if state.is_legal('right_arc'):
-                    ix = state.t2i['right_arc']
-                    for j,r in enumerate(relations):
-                        k = 2 + 2 * j
-                        t = Transition('right_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                    if state.is_legal('left_arc'):
+                        ix = state.t2i['left_arc']
+                        for j,r in enumerate(relations):
+                            k = 1 + 2 * j
+                            t = Transition('left_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                            legal_transitions.append(t)
+                    if state.is_legal('right_arc'):
+                        ix = state.t2i['right_arc']
+                        for j,r in enumerate(relations):
+                            k = 2 + 2 * j
+                            t = Transition('right_arc', r, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                            legal_transitions.append(t)
+                    if state.is_legal('drop'):
+                        ix = state.t2i['drop']
+                        t = Transition('drop', None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
                         legal_transitions.append(t)
-                if state.is_legal('drop'):
-                    ix = state.t2i['drop']
-                    t = Transition('drop', None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
-                    legal_transitions.append(t)
-                print('---')
-                print('legal',legal_transitions)
+                    print('---')
+                    print('legal',legal_transitions)
 
-                # collect all correct transitions
-                correct_transitions = []
-                for t in legal_transitions:
-                    if state.is_correct(t[0]):
-                        if t.op not in ['shift', 'drop']:
-                            print(t.label, state.stack[-1].relation)
-                        if t.op in ['shift', 'drop'] or t.label == state.stack[-1].relation:
-                            correct_transitions.append(t)
+                    # collect all correct transitions
+                    correct_transitions = []
+                    for t in legal_transitions:
+                        if state.is_correct(t[0]):
+                            if t.op not in ['shift', 'drop']:
+                                print(t.label, state.stack[-1].relation)
+                            if t.op in ['shift', 'drop'] or t.label == state.stack[-1].relation:
+                                correct_transitions.append(t)
 
-                print('correct',correct_transitions)
-                print('sentence',sentence)
-                print(state.stack)
-                print(state.buffer)
-                # select transition
-                best_legal = max(legal_transitions, key=attrgetter('score'))
-                best_correct = max(correct_transitions, key=attrgetter('score'))
+                    print('correct',correct_transitions)
+                    print('sentence',sentence)
+                    print(state.stack)
+                    print(state.buffer)
+                    # select transition
+                    best_legal = max(legal_transitions, key=attrgetter('score'))
+                    best_correct = max(correct_transitions, key=attrgetter('score'))
 
-                # trigger label loss
-                tg_loss = dy.pickneglogsoftmax(dy_tg_scores, self.tg2i[state.buffer[0].feats]) 
-                # accumulate losses
-                loss = 1 - best_correct.score + best_legal.score + tg_loss.npvalue()[0]
-                if best_legal != best_correct and loss > 0:
-                    losses.append(1 - best_correct.dy_score + best_legal.dy_score + tg_loss)
-                    loss_chunk += loss
-                    loss_all += loss
-                total_chunk += 1
-                total_all += 1
+                    # trigger label loss
+                    tg_loss = dy.pickneglogsoftmax(dy_tg_scores, self.tg2i[state.buffer[0].feats]) 
+                    # accumulate losses
+                    loss = 1 - best_correct.score + best_legal.score + tg_loss.npvalue()[0]
+                    if best_legal != best_correct and loss > 0:
+                        losses.append(1 - best_correct.dy_score + best_legal.dy_score + tg_loss)
+                        loss_chunk += loss
+                        loss_all += loss
+                    total_chunk += 1
+                    total_all += 1
 
-                # perform transition
-                # note that we compare against loss + 1, to perform aggressive exploration
-                selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
-                state.perform_transition(selected.op, selected.label)
+                    # perform transition
+                    # note that we compare against loss + 1, to perform aggressive exploration
+                    selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
+                    state.perform_transition(selected.op, selected.label)
 
             # process losses in chunks
             if len(losses) > 50:

@@ -54,10 +54,11 @@ def make_vocabularies3(events):
     relation_count = Counter()
     entity_count = Counter()
     for event in events:
-        word_count.update(e.norm for e in event)
-        tag_count.update(e.postag for e in event)
-        relation_count.update(e.relation for e in event if e.relation != 'none')
-        entity_count.update(e.feats for e in event)
+        if len(event) > 2:
+            word_count.update(e.norm for e in event)
+            tag_count.update(e.postag for e in event)
+            relation_count.update(e.relation for e in event if e.relation != 'none')
+            entity_count.update(e.feats for e in event)
     special = ['*unk*', '*pad*']
     words = special + list(word_count.keys())
     tags = special + list(tag_count.keys())
