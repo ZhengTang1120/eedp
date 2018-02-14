@@ -360,7 +360,8 @@ class ArcHybridParser:
             tg_probs = dy.softmax(tg_scores).npvalue()
             tg_idx = np.argmax(tg_probs)
             tg_lbl = self.i2tg[tg_idx]
-            state.buffer[0].pred_feats = tg_lbl
+            if state.buffer[0].pred_feats != "Protein":
+                state.buffer[0].pred_feats = tg_lbl
 
             # perform transition
             state.perform_transition(best_act, best_lbl)

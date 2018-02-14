@@ -17,7 +17,7 @@ skipped_sentences = 0
 
 API = ProcessorsBaseAPI(port=8888)
 
-def brat_to_conllx(text, annotations):
+def brat_to_conllx(text, annotations, test=False):
     """
     gets an annotation corresponding to a single paper
     and returns a sequence of sentences formatted as conllx
@@ -34,7 +34,7 @@ def brat_to_conllx(text, annotations):
             for i in range(len(words)):
                 tbm = get_tbm(annotations, starts[i], ends[i])
                 label = None if tbm is None else tbm.label
-                if label is None:
+                if label is None and test:
                     label = 'O'
                 rel, head = get_relhead(annotations, starts, ends, tbm, i)
                 entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label, head=head, deprel=rel)
@@ -48,6 +48,7 @@ def brat_to_conllx(text, annotations):
             print(words)
             print(ends)
             skipped_sentences += 1
+            yield [ConllEntry(id=1, form='*skipped*', postag='*skipped*', head=-1, deprel='skipped', feats='O')]
             continue
         yield make_projective(conllx)
 
@@ -59,13 +60,13 @@ def make_projective(entries):
         if e.parent_id == 0 and num_dependents[e.id] == 0:
             e.parent_id = e.head = -1
             e.relation = e.deprel = 'none'
-            e.brat_label = e.feats = None
+            # e.brat_label = e.feats = 'O'
     return entries
 
 def get_tbm(annotations, start, end):
     """returns the corresponding textbound mention"""
     for a in annotations:
-        if a.id.startswith('T') and a.start <= end and start <= a.end:
+        if a.id.startswith('T') and a.start < end and start < a.end:
             return a
 
 def get_mention_head(annotations, ends, mention_id):
@@ -169,7 +170,7 @@ if __name__ == '__main__':
         a1 = read(root + '.a1')
         a2 = read(root + '.a2')
         annotations = f'{a1}\n{a2}'
-        sentences += brat_to_conllx(txt, annotations)
+        sentences += brat_to_conllx(txt, annotations, True)
 
     print('---')
     print(f'{total_sentences:,} sentences')
