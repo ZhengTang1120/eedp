@@ -33,6 +33,7 @@ class ArcHybridParser:
         self.i2e = ["Protein", "O", "*pad*"]
         # self.dep_relations = dep_relations
         self.ev_relations = ev_relations
+        self.i2tg = entities
 
         # mapings from terms to ids
         self.w2i = {w:i for i,w in enumerate(words)}
@@ -329,7 +330,7 @@ class ArcHybridParser:
         state = ArcHybridWithDrop(sentence)
         # parse sentence
         while not state.is_terminal():
-            op_scores, lbl_scores = self.evaluate_events(state.stack, state.buffer, features)
+            op_scores, lbl_scores, tg_scores = self.evaluate_events(state.stack, state.buffer, features)
             # get numpy arrays
             op_scores = op_scores.npvalue()
             lbl_scores = lbl_scores.npvalue()
@@ -354,6 +355,12 @@ class ArcHybridParser:
 
             # select best legal transition
             best_act, best_lbl, best_score = max(transitions, key=itemgetter(2))
+
+            # get best trigger label
+            tg_probs = dy.softmax(tg_scores).npvalue()
+            tg_idx = np.argmax(tg_probs)
+            tg_lbl = self.i2tg[tg_idx]
+            state.buffer[0].pred_feats = tg_lbl
 
             # perform transition
             state.perform_transition(best_act, best_lbl)
