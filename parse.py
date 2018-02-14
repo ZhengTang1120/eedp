@@ -26,7 +26,10 @@ if __name__ == '__main__':
     for s in sentences:
         for e in s:
             if e.id > 0:
-                e.head = e.parent_id = e.pred_parent_id
-                e.deprel = e.relation = e.pred_relation
-                e.feats = e.brat_label = e.pred_feats
+                try:
+                    e.head = e.parent_id = e.pred_parent_id
+                    e.deprel = e.relation = e.pred_relation
+                    e.feats = e.brat_label = e.pred_feats
+                except:
+                    continue
     write_conllx(args.outfile, sentences)
