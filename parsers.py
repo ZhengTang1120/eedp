@@ -11,6 +11,8 @@ import dynet as dy
 import numpy as np
 from transition_systems import ArcHybrid, ArcHybridWithDrop
 
+from copy import deepcopy
+
 Transition = namedtuple('Transition', 'op label score dy_score')
 
 class ArcHybridParser:
@@ -33,8 +35,8 @@ class ArcHybridParser:
         self.i2e = ["Protein", "O", "*pad*"]
         # self.dep_relations = dep_relations
         self.ev_relations = ev_relations
-        entities.pop(entities.index("Protein"))
-        self.i2tg = entities
+        self.i2tg = deepcopy(entities)
+        self.i2tg.pop(self.i2tg.index("Protein"))
 
         # mapings from terms to ids
         self.w2i = {w:i for i,w in enumerate(words)}
@@ -109,7 +111,6 @@ class ArcHybridParser:
         self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
         self.ev_lbl_output_bias = self.model.add_parameters((out_size))
 
-        entities.append("Protein")
         self.entities = entities
 
         # fully connected network with one hidden layer
@@ -228,8 +229,6 @@ class ArcHybridParser:
         total_chunk = 0
         total_all = 0
         losses = []
-        print (self.i2tg)
-        print (self.tg2i)
         self.set_empty_vector()
         for i, sentence in enumerate(sentences):
             if i != 0 and i % 100 == 0:
