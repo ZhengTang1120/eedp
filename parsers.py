@@ -365,16 +365,21 @@ class ArcHybridParser:
             # select best legal transition
             best_act, best_lbl, best_score = max(transitions, key=itemgetter(2))
 
-            # get best trigger label
-            tg_probs = dy.softmax(tg_scores).npvalue()
-            tg_idx = np.argmax(tg_probs)
-            tg_lbl = self.i2tg[tg_idx]
-            if state.buffer[0].feats != "Protein":
-                state.buffer[0].pred_feats = tg_lbl
-            else:
-                state.buffer[0].pred_feats = "Protein"
-
             # perform transition
             state.perform_transition(best_act, best_lbl)
+
+            # get best trigger label
+            tg_probs = dy.softmax(tg_scores).npvalue()
+            if state.buffer[0].feats != "Protein":
+                if best_lbl:
+                    tg_idx = np.argmax(tg_probs)
+                    tg_lbl = self.i2tg[tg_idx]
+                    state.buffer[0].pred_feats = tg_lbl
+                else:
+                    tg_idx = np.argsort(tg_probs)[1]
+                    tg_lbl = self.i2tg[tg_idx]
+                    state.buffer[0].pred_feats = tg_lbl
+            else:
+                state.buffer[0].pred_feats = "Protein"
         dy.renew_cg()
         return sentence
