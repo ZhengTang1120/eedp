@@ -33,5 +33,5 @@ if __name__ == '__main__':
                         pred_feats = e.pred_feats[0]
                     e.head = e.parent_id = e.pred_parent_id
                     e.deprel = e.relation = e.pred_relation
-                    e.feats = e.brat_label = e.pred_feats[0]+" "+e.pred_feats[1]
+                    e.feats = e.brat_label = pred_feats
     write_conllx(args.outfile, sentences)
