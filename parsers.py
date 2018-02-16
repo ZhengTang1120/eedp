@@ -367,17 +367,12 @@ class ArcHybridParser:
 
             # get best trigger label
             tg_probs = dy.softmax(tg_scores).npvalue()
-            tg_idx = np.argmax(tg_probs)
-            tg_lbl = self.i2tg[tg_idx]
+            tg_idx = np.argsort(tg_probs)
+            tg_lbl_t2 = [self.i2tg[tg_idx[0]], self.i2tg[tg_idx[1]]]
             if state.buffer[0].feats != "Protein":
-                if tg_lbl == "O" and best_lbl != None:
-                    tg_idx = np.argsort(tg_probs)[1]
-                    tg_lbl = self.i2tg[tg_idx]
-                    state.buffer[0].pred_feats = tg_lbl
-                else:
-                    state.buffer[0].pred_feats = tg_lbl
+                state.buffer[0].pred_feats = tg_lbl_t2
             else:
-                state.buffer[0].pred_feats = "Protein"
+                state.buffer[0].pred_feats = ["Protein", "Protein"]
 
             # perform transition
             state.perform_transition(best_act, best_lbl)
