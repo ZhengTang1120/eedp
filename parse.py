@@ -27,8 +27,8 @@ if __name__ == '__main__':
         if len(s) > 2:
             for e in s:
                 if e.id > 0:
-                    if e.pred_relation == 'none' and e.pred_feats == 'O':
-                        exit()
+                    print (e.pred_feats)
+                    print (e.pred_relation)
                     e.head = e.parent_id = e.pred_parent_id
                     e.deprel = e.relation = e.pred_relation
                     e.feats = e.brat_label = e.pred_feats
