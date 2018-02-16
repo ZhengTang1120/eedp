@@ -228,6 +228,8 @@ class ArcHybridParser:
         total_chunk = 0
         total_all = 0
         losses = []
+        print (self.i2tg)
+        print (self.tg2i)
         self.set_empty_vector()
         for i, sentence in enumerate(sentences):
             if i != 0 and i % 100 == 0:
@@ -368,7 +370,6 @@ class ArcHybridParser:
             # get best trigger label
             tg_probs = dy.softmax(-tg_scores).npvalue()
             tg_idx = np.argsort(tg_probs)
-            print (self.i2tg)
             tg_lbl_t2 = [self.i2tg[tg_idx[0]], self.i2tg[tg_idx[1]]]
             if state.buffer[0].feats != "Protein":
                 state.buffer[0].pred_feats = tg_lbl_t2
