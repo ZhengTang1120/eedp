@@ -366,7 +366,7 @@ class ArcHybridParser:
             best_act, best_lbl, best_score = max(transitions, key=itemgetter(2))
 
             # get best trigger label
-            tg_probs = dy.softmax(tg_scores).npvalue()
+            tg_probs = dy.softmax(-tg_scores).npvalue()
             tg_idx = np.argsort(tg_probs)
             tg_lbl_t2 = [self.i2tg[tg_idx[0]], self.i2tg[tg_idx[1]]]
             if state.buffer[0].feats != "Protein":
