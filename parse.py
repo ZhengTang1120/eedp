@@ -27,11 +27,11 @@ if __name__ == '__main__':
         if len(s) > 2:
             for e in s:
                 if e.id > 0:
-                    if (e.pred_feats[0] == "O" and e.pred_relation != "none"):
-                        pred_feats = e.pred_feats[1]
-                    else:
-                        pred_feats = e.pred_feats[0]
+                    # if (e.pred_feats[0] == "O" and e.pred_relation != "none"):
+                    #     pred_feats = e.pred_feats[1]
+                    # else:
+                    #     pred_feats = e.pred_feats[0]
                     e.head = e.parent_id = e.pred_parent_id
                     e.deprel = e.relation = e.pred_relation
-                    e.feats = e.brat_label = pred_feats
+                    e.feats = e.brat_label = e.pred_feats[0]+" "+e.pred_feats[1]
     write_conllx(args.outfile, sentences)
