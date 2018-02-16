@@ -370,7 +370,7 @@ class ArcHybridParser:
             tg_idx = np.argmax(tg_probs)
             tg_lbl = self.i2tg[tg_idx]
             if state.buffer[0].feats != "Protein":
-                if best_lbl:
+                if best_lbl != None:
                     tg_idx = np.argmax(tg_probs)
                     tg_lbl = self.i2tg[tg_idx]
                     state.buffer[0].pred_feats = tg_lbl
