@@ -18,7 +18,7 @@ Transition = namedtuple('Transition', 'op label score dy_score')
 class ArcHybridParser:
 
     def __init__(self, word_count, words, tags,
-            ev_relations, entities,
+            entities, dep_relations, ev_relations,
             w_embed_size, t_embed_size, e_embed_size,
             lstm_hidden_size, lstm_num_layers,
             dep_op_hidden_size, dep_lbl_hidden_size,
@@ -33,7 +33,7 @@ class ArcHybridParser:
         self.i2w = words
         self.i2t = tags
         self.i2e = ["Protein", "O", "*pad*"]
-        # self.dep_relations = dep_relations
+        self.dep_relations = dep_relations
         self.ev_relations = ev_relations
         self.i2tg = deepcopy(entities)
         self.i2tg.pop(self.i2tg.index("Protein"))
@@ -79,37 +79,38 @@ class ArcHybridParser:
         self.word_to_lstm      = self.model.add_parameters((self.lstm_hidden_size, self.w_embed_size + self.t_embed_size + self.e_embed_size))
         self.word_to_lstm_bias = self.model.add_parameters((self.lstm_hidden_size))
 
-        # fully connected network with one hidden layer
-        # to predict the transition to take next
-        # out_size = 3 # shift, left_arc, right_arc
-        # self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 4))
-        # self.dep_op_hidden_bias = self.model.add_parameters((self.dep_op_hidden_size))
-        # self.dep_op_output      = self.model.add_parameters((out_size, self.dep_op_hidden_size))
-        # self.dep_op_output_bias = self.model.add_parameters((out_size))
+        if self.dep_relations:
+            # fully connected network with one hidden layer
+            # to predict the transition to take next
+            out_size = 3 # shift, left_arc, right_arc
+            self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 4))
+            self.dep_op_hidden_bias = self.model.add_parameters((self.dep_op_hidden_size))
+            self.dep_op_output      = self.model.add_parameters((out_size, self.dep_op_hidden_size))
+            self.dep_op_output_bias = self.model.add_parameters((out_size))
 
-        # # fully connected network with one hidden layer
-        # # to predict the arc label
-        # out_size = 1 + len(self.dep_relations) * 2
-        # self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 4))
-        # self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
-        # self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
-        # self.dep_lbl_output_bias = self.model.add_parameters((out_size))
+            # # fully connected network with one hidden layer
+            # # to predict the arc label
+            out_size = 1 + len(self.dep_relations) * 2
+            self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 4))
+            self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
+            self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
+            self.dep_lbl_output_bias = self.model.add_parameters((out_size))
+        if self.ev_relations:
+            # fully connected network with one hidden layer
+            # to predict the transition to take next
+            out_size = 4 # shift, left_arc, right_arc, drop
+            self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.lstm_hidden_size * 4))
+            self.ev_op_hidden_bias = self.model.add_parameters((self.ev_op_hidden_size))
+            self.ev_op_output      = self.model.add_parameters((out_size, self.ev_op_hidden_size))
+            self.ev_op_output_bias = self.model.add_parameters((out_size))
 
-        # fully connected network with one hidden layer
-        # to predict the transition to take next
-        out_size = 4 # shift, left_arc, right_arc, drop
-        self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.lstm_hidden_size * 4))
-        self.ev_op_hidden_bias = self.model.add_parameters((self.ev_op_hidden_size))
-        self.ev_op_output      = self.model.add_parameters((out_size, self.ev_op_hidden_size))
-        self.ev_op_output_bias = self.model.add_parameters((out_size))
-
-        # fully connected network with one hidden layer
-        # to predict the arc label
-        out_size = 1 + len(self.ev_relations) * 2
-        self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.lstm_hidden_size * 4))
-        self.ev_lbl_hidden_bias = self.model.add_parameters((self.ev_lbl_hidden_size))
-        self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
-        self.ev_lbl_output_bias = self.model.add_parameters((out_size))
+            # fully connected network with one hidden layer
+            # to predict the arc label
+            out_size = 1 + len(self.ev_relations) * 2
+            self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.lstm_hidden_size * 4))
+            self.ev_lbl_hidden_bias = self.model.add_parameters((self.ev_lbl_hidden_size))
+            self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
+            self.ev_lbl_output_bias = self.model.add_parameters((out_size))
 
         self.entities = entities
 
@@ -244,7 +245,12 @@ class ArcHybridParser:
                 state = transition_system(sentence)
                 # parse sentence
                 while not state.is_terminal():
-                    dy_op_scores, dy_lbl_scores, dy_tg_scores = evaluate(state.stack, state.buffer, features)
+                    outputs = evaluate(state.stack, state.buffer, features)
+
+                    if len(outputs) == 3:
+                        dy_op_scores, dy_lbl_scores, dy_tg_scores = outputs
+                    else:
+                        dy_op_scores, dy_lbl_scores = outputs
 
                     # get scores in numpy arrays
                     np_op_scores = dy_op_scores.npvalue()
@@ -292,13 +298,19 @@ class ArcHybridParser:
                     best_legal = max(legal_transitions, key=attrgetter('score'))
                     best_correct = max(correct_transitions, key=attrgetter('score'))
 
-                    # trigger label loss
-                    tg_lbl = state.buffer[0].feats if state.buffer[0].feats!="Protein" else "O"
-                    tg_loss = dy.pickneglogsoftmax(dy_tg_scores, self.tg2i[tg_lbl]) 
-                    # accumulate losses
-                    loss = 1 - best_correct.score + best_legal.score + tg_loss.npvalue()[0]
+                    if len(outputs) == 3:
+                        # trigger label loss
+                        tg_lbl = state.buffer[0].feats if state.buffer[0].feats!="Protein" else "O"
+                        tg_loss = dy.pickneglogsoftmax(dy_tg_scores, self.tg2i[tg_lbl]) 
+                        # accumulate losses
+                        loss = 1 - best_correct.score + best_legal.score + tg_loss.npvalue()[0]
+                        dy_loss = 1 - best_correct.dy_score + best_legal.dy_score + tg_loss
+                    else:
+                        loss = 1 - best_correct.score + best_legal.score
+                        dy_loss = 1 - best_correct.dy_score + best_legal.dy_score
+
                     if best_legal != best_correct and loss > 0:
-                        losses.append(1 - best_correct.dy_score + best_legal.dy_score + tg_loss)
+                        losses.append(dy_loss)
                         loss_chunk += loss
                         loss_all += loss
                     total_chunk += 1

@@ -64,7 +64,7 @@ def make_vocabularies3(events):
     tags = special + list(tag_count.keys())
     rels = list(relation_count.keys())
     entities = list(entity_count.keys())
-    return (word_count, words, tags, rels, entities)
+    return (word_count, words, tags, entities, rels)
 
 def make_vocabularies2(sentences, events):
     """gets a corpus and returns (word counts, words, tags, dependencies, events)"""
@@ -72,6 +72,7 @@ def make_vocabularies2(sentences, events):
     tag_count = Counter()
     dep_relation_count = Counter()
     ev_relation_count = Counter()
+    entity_count = Counter()
     for sentence in sentences:
         word_count.update(e.norm for e in sentence)
         tag_count.update(e.postag for e in sentence)
@@ -80,12 +81,14 @@ def make_vocabularies2(sentences, events):
         word_count.update(e.norm for e in event)
         tag_count.update(e.postag for e in event)
         ev_relation_count.update(e.relation for e in event if e.relation != 'none')
+        entity_count.update(e.feats for e in event)
     special = ['*unk*', '*pad*']
     words = special + list(word_count.keys())
     tags = special + list(tag_count.keys())
     dep_rels = list(dep_relation_count.keys())
     ev_rels = list(ev_relation_count.keys())
-    return (word_count, words, tags, dep_rels, ev_rels)
+    entities = list(entity_count.keys())
+    return (word_count, words, tags, entities, ev_rels, dep_rels)
 
 
 

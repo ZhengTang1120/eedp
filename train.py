@@ -5,10 +5,10 @@ from utils import *
 from parsers import ArcHybridParser
 import os
 
-def make_parser(args, word_count, words, tags, ev_rels, entities):
+def make_parser(args, word_count, words, tags, entities, ev_rels=None, dep_rels=None):
     return ArcHybridParser(
-        word_count, words, tags,
-        ev_rels, entities,
+        word_count, words, tags, entities,
+        dep_rels, ev_rels,
         args.w_embed_dim,
         args.t_embed_dim,
         args.e_embed_dim,
@@ -20,7 +20,7 @@ def make_parser(args, word_count, words, tags, ev_rels, entities):
         args.ev_lbl_hidden_size,
         args.tg_lbl_hidden_size,
         args.alpha,
-        args.p_explore,
+        args.p_explore
     )
 
 if __name__ == '__main__':
@@ -28,8 +28,8 @@ if __name__ == '__main__':
     random.seed(1)
 
     parser = argparse.ArgumentParser()
-    # parser.add_argument('depsfile')
-    parser.add_argument('evsfile')
+    parser.add_argument('--depsfile', default=None)
+    parser.add_argument('--evsfile', default=None)
     parser.add_argument('--outdir', default='out')
     parser.add_argument('--w_embed_dim',         type=int,   default=100)
     parser.add_argument('--t_embed_dim',         type=int,   default=25)
@@ -50,17 +50,31 @@ if __name__ == '__main__':
         os.makedirs(args.outdir)
 
     print('loading ...')
-    # sentences = read_conllx(args.depsfile, non_proj=False)
-    events = read_conllx(args.evsfile)
-    vocabularies = make_vocabularies3(events)
+    events = sentences = None
+    if args.evsfile:
+        events = read_conllx(args.evsfile)
+    if args.depsfile:
+        sentences = read_conllx(args.depsfile, non_proj=False)
+    if events and sentences:
+        vocabularies = make_vocabularies2(sentences, events)
+    elif events:
+        vocabularies = make_vocabularies3(events)
+    elif sentences:
+        vocabularies = make_vocabularies(sentences)
+    else:
+        print("Must have at least one file to parse!")
+        exit()
     parser = make_parser(args, *vocabularies)
 
     print('training ...')
     for epoch in range(args.epochs):
         print('epoch', epoch + 1)
-        # random.shuffle(sentences)
-        # parser.train_dependencies(sentences)
-        parser.train_events(events)
+        if args.depsfile:
+            random.shuffle(sentences)
+            parser.train_dependencies(sentences)
+        if args.evsfile:
+            random.shuffle(events)
+            parser.train_events(events)
         name = f'{args.outdir}/parser{epoch+1:03}'
         print('saving', name)
         parser.save(name)
