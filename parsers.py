@@ -212,7 +212,7 @@ class ArcHybridParser:
         lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
         # predict trigger label
         tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * t + self.tg_lbl_hidden_bias.expr())
-        tg_output = self.tg_lbl_output.expr() * lbl_hidden + self.tg_lbl_output_bias.expr()
+        tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
         # return scores
         return op_output, lbl_output, tg_output
 
@@ -221,6 +221,7 @@ class ArcHybridParser:
 
     def train_events(self, sentences):
         self._train(sentences, ArcHybridWithDrop, self.evaluate_events, self.ev_relations)
+
 
     def _train(self, sentences, transition_system, evaluate, relations):
         start_chunk = time.time()
