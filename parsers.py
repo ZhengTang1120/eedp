@@ -42,7 +42,7 @@ class ArcHybridParser:
         self.w2i = {w:i for i,w in enumerate(words)}
         self.t2i = {t:i for i,t in enumerate(tags)}
         self.e2i = {e:i for i,e in enumerate(self.i2e)}
-        self.tg2i = {e:i for i,e in enumerate(entities)}
+        self.tg2i = {e:i for i,e in enumerate(self.i2tg)}
 
         self.w_embed_size = w_embed_size
         self.t_embed_size = t_embed_size
@@ -56,6 +56,7 @@ class ArcHybridParser:
         self.tg_lbl_hidden_size = tg_lbl_hidden_size
         self.alpha = alpha
         self.p_explore = p_explore
+        self.entities = entities
 
         self.model = dy.Model()
         self.trainer = dy.AdamTrainer(self.model)
@@ -112,11 +113,9 @@ class ArcHybridParser:
             self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
             self.ev_lbl_output_bias = self.model.add_parameters((out_size))
 
-        self.entities = entities
-
         # fully connected network with one hidden layer
         # to predict the trigger label
-        out_size = len(entities)
+        out_size = len(self.i2tg)
         self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 5))
         self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
         self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
@@ -382,10 +381,6 @@ class ArcHybridParser:
             # get best trigger label
             tg_probs = dy.softmax(-tg_scores).npvalue()
             tg_idx = np.argsort(tg_probs)
-            print (tg_idx[0])
-            print (tg_idx[1])
-            print (self.i2tg[tg_idx[0]])
-            print (self.i2tg[tg_idx[1]])
             tg_lbl_t2 = [self.i2tg[tg_idx[0]], self.i2tg[tg_idx[1]]]
             if state.buffer[0].feats != "Protein":
                 state.buffer[0].pred_feats = tg_lbl_t2
