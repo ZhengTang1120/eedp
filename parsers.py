@@ -125,7 +125,7 @@ class ArcHybridParser:
     def save(self, name):
         params = (
             self.word_count, self.i2w, self.i2t,
-            self.ev_relations, self.entities,
+            self.entities, self.dep_relations, self.ev_relations,
             self.w_embed_size, self.t_embed_size, self.e_embed_size,
             self.lstm_hidden_size // 2, self.lstm_num_layers,
             self.dep_op_hidden_size, self.dep_lbl_hidden_size,
