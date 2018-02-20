@@ -35,14 +35,16 @@ class ArcHybridParser:
         self.i2e = ["Protein", "O", "*pad*"]
         self.dep_relations = dep_relations
         self.ev_relations = ev_relations
-        self.i2tg = deepcopy(entities)
-        self.i2tg.pop(self.i2tg.index("Protein"))
+        if entities:
+            self.i2tg = deepcopy(entities)
+            self.i2tg.pop(self.i2tg.index("Protein"))
 
         # mapings from terms to ids
         self.w2i = {w:i for i,w in enumerate(words)}
         self.t2i = {t:i for i,t in enumerate(tags)}
         self.e2i = {e:i for i,e in enumerate(self.i2e)}
-        self.tg2i = {e:i for i,e in enumerate(self.i2tg)}
+        if entities:
+            self.tg2i = {e:i for i,e in enumerate(self.i2tg)}
 
         self.w_embed_size = w_embed_size
         self.t_embed_size = t_embed_size
@@ -112,14 +114,14 @@ class ArcHybridParser:
             self.ev_lbl_hidden_bias = self.model.add_parameters((self.ev_lbl_hidden_size))
             self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
             self.ev_lbl_output_bias = self.model.add_parameters((out_size))
-
-        # fully connected network with one hidden layer
-        # to predict the trigger label
-        out_size = len(self.i2tg)
-        self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 5))
-        self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
-        self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
-        self.tg_lbl_output_bias = self.model.add_parameters((out_size))
+        if self.entities:
+            # fully connected network with one hidden layer
+            # to predict the trigger label
+            out_size = len(self.i2tg)
+            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 5))
+            self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
+            self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
+            self.tg_lbl_output_bias = self.model.add_parameters((out_size))
 
     def save(self, name):
         params = (
@@ -220,7 +222,6 @@ class ArcHybridParser:
 
     def train_events(self, sentences):
         self._train(sentences, ArcHybridWithDrop, self.evaluate_events, self.ev_relations)
-
 
     def _train(self, sentences, transition_system, evaluate, relations):
         start_chunk = time.time()

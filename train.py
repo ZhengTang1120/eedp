@@ -5,7 +5,10 @@ from utils import *
 from parsers import ArcHybridParser
 import os
 
-def make_parser(args, word_count, words, tags, entities, ev_rels=None, dep_rels=None):
+def make_parser(args, word_count, words, tags, entities=None, ev_rels=None, dep_rels=None):
+    print (ev_rels)
+    print (dep_rels)
+    print (entities)
     return ArcHybridParser(
         word_count, words, tags, entities,
         dep_rels, ev_rels,
@@ -57,14 +60,16 @@ if __name__ == '__main__':
         sentences = read_conllx(args.depsfile, non_proj=False)
     if events and sentences:
         vocabularies = make_vocabularies2(sentences, events)
+        parser = make_parser(args, *vocabularies)
     elif events:
         vocabularies = make_vocabularies3(events)
+        parser = make_parser(args, *vocabularies[:-1], ev_rels = vocabularies[-1])
     elif sentences:
         vocabularies = make_vocabularies(sentences)
+        parser = make_parser(args, *vocabularies[:-1], dep_rels = vocabularies[-1])
     else:
         print("Must have at least one file to parse!")
         exit()
-    parser = make_parser(args, *vocabularies)
 
     print('training ...')
     for epoch in range(args.epochs):
