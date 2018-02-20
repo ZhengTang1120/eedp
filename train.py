@@ -6,9 +6,6 @@ from parsers import ArcHybridParser
 import os
 
 def make_parser(args, word_count, words, tags, entities=None, ev_rels=None, dep_rels=None):
-    print (ev_rels)
-    print (dep_rels)
-    print (entities)
     return ArcHybridParser(
         word_count, words, tags, entities,
         dep_rels, ev_rels,
