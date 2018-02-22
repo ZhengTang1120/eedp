@@ -263,8 +263,8 @@ class ArcHybridParser:
                     if state.is_legal('shift'):
                         ix = state.t2i['shift']
                         if triggers:
-                            for j, tg in enumerate(triggers):
-                                if (hasattr(state.buffer[0], 'is_parent') and state.buffer[0].is_parent and j == 0):
+                            for j, tg in enumerate(triggers, start=1):
+                                if (hasattr(state.buffer[0], 'is_parent') and state.buffer[0].is_parent and j == 1):
                                     continue
                                 t = Transition('shift', None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
                                 legal_transitions.append(t)
@@ -294,7 +294,7 @@ class ArcHybridParser:
                     if state.is_legal('drop'):
                         ix = state.t2i['drop']
                         if triggers:
-                            t = Transition('drop', None, "O", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
+                            t = Transition('drop', None, "O", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[1], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
                             legal_transitions.append(t)
                         else:
                             t = Transition('drop', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
