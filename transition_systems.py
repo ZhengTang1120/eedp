@@ -63,14 +63,17 @@ class ArcHybrid:
             return c
 
     # this is only valid for legal transitions
-    def perform_transition(self, transition, relation=None):
+    def perform_transition(self, transition, relation=None, trigger=None):
         if transition == 'shift':
+            if trigger:
+                self.buffer[0].pred_feats = trigger if self.buffer[0]!="Protein" else "Protein"
             self.stack.append(self.buffer.pop(0))
         elif transition == 'left_arc':
             child = self.stack.pop()
             parent = self.buffer[0]
             child.pred_parent_id = parent.id
             child.pred_relation = relation
+            parent.is_parent = True
         elif transition == 'right_arc':
             child = self.stack.pop()
             parent = self.stack[-1]
@@ -132,10 +135,12 @@ class ArcHybridWithDrop(ArcHybrid):
             return c
 
 
-    def perform_transition(self, transition, relation=None):
+    def perform_transition(self, transition, relation=None, trigger=None):
         if transition == 'drop':
+            if trigger:
+                self.buffer[0].pred_feats = "O" if self.buffer[0]!="Protein" else "Protein"
             b = self.buffer.pop(0)
             b.pred_parent_id = -1
             b.pred_relation = 'none'
         else:
-            super().perform_transition(transition, relation)
+            super().perform_transition(transition, relation, trigger)
