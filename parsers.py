@@ -118,7 +118,7 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the trigger label
             out_size = 1 + len(self.i2tg)
-            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 5))
+            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size))
             self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
             self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
             self.tg_lbl_output_bias = self.model.add_parameters((out_size))
@@ -191,7 +191,7 @@ class ArcHybridParser:
         lbl_hidden = dy.tanh(self.dep_lbl_hidden.expr() * input + self.dep_lbl_hidden_bias.expr())
         lbl_output = self.dep_lbl_output.expr() * lbl_hidden + self.dep_lbl_output_bias.expr()
         # return scores
-        return op_output, lbl_output
+        return dy.softmax(op_output), dy.softmax(lbl_output)
 
     def evaluate_events(self, stack, buffer, features):
         # construct input vector
@@ -212,10 +212,10 @@ class ArcHybridParser:
         lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
         lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
         # predict trigger label
-        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * t + self.tg_lbl_hidden_bias.expr())
+        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * b + self.tg_lbl_hidden_bias.expr())
         tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
         # return scores
-        return op_output, lbl_output, tg_output
+        return dy.softmax(op_output), dy.softmax(lbl_output), dy.softmax(tg_output)
 
     def train_dependencies(self, sentences):
         self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations)
@@ -264,39 +264,39 @@ class ArcHybridParser:
                         ix = state.t2i['shift']
                         if triggers:
                             for j, tg in enumerate(triggers, start=1):
-                                t = Transition('shift', None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
+                                t = Transition('shift', None, tg, np_op_scores[ix] * np_lbl_scores[0] * np_tg_scores[j], dy_op_scores[ix] * dy_lbl_scores[0] * dy_tg_scores[j])
                                 legal_transitions.append(t)
                         else:
-                            t = Transition('shift', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
+                            t = Transition('shift', None, None, np_op_scores[ix] * np_lbl_scores[0], dy_op_scores[ix] * dy_lbl_scores[0])
                             legal_transitions.append(t)
                     if state.is_legal('left_arc'):
                         ix = state.t2i['left_arc']
                         for j,r in enumerate(relations):
                             k = 1 + 2 * j
                             if triggers:
-                                t = Transition('left_arc', r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
+                                t = Transition('left_arc', r, None, np_op_scores[ix] * np_lbl_scores[k] * np_tg_scores[0], dy_op_scores[ix] * dy_lbl_scores[k] * dy_tg_scores[0])
                                 legal_transitions.append(t)
                             else:
-                                t = Transition('left_arc', r, None, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                                t = Transition('left_arc', r, None, np_op_scores[ix] * np_lbl_scores[k], dy_op_scores[ix] * dy_lbl_scores[k])
                                 legal_transitions.append(t)
                     if state.is_legal('right_arc'):
                         ix = state.t2i['right_arc']
                         for j,r in enumerate(relations):
                             k = 2 + 2 * j
                             if triggers:
-                                t = Transition('right_arc', r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
+                                t = Transition('right_arc', r, None, np_op_scores[ix] * np_lbl_scores[k] * np_tg_scores[0], dy_op_scores[ix] * dy_lbl_scores[k] * dy_tg_scores[0])
                                 legal_transitions.append(t)
                             else:
-                                t = Transition('right_arc', r, None, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                                t = Transition('right_arc', r, None, np_op_scores[ix] * np_lbl_scores[k], dy_op_scores[ix] * dy_lbl_scores[k])
                                 legal_transitions.append(t)
                     if state.is_legal('drop'):
                         ix = state.t2i['drop']
                         if triggers:
                             for j, tg in enumerate(triggers, start=1):
-                                t = Transition('drop', None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
+                                t = Transition('drop', None, tg, np_op_scores[ix] * np_lbl_scores[0] * np_tg_scores[j], dy_op_scores[ix] * dy_lbl_scores[0] * dy_tg_scores[j])
                                 legal_transitions.append(t)
                         else:
-                            t = Transition('drop', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
+                            t = Transition('drop', None, None, np_op_scores[ix] * np_lbl_scores[0], dy_op_scores[ix] * dy_lbl_scores[0])
                             legal_transitions.append(t)
                     # print('---')
                     # print('legal',legal_transitions)
@@ -378,16 +378,16 @@ class ArcHybridParser:
             # collect all legal transitions
             transitions = []
             if state.is_legal('shift'):
-                t = ('shift', None, trigger, op_scores[state.t2i['shift']] + lbl_scores[0] + trigger_score)
+                t = ('shift', None, trigger, op_scores[state.t2i['shift']] * lbl_scores[0] * trigger_score)
                 transitions.append(t)
             if state.is_legal('left_arc'):
-                t = ('left_arc', left_lbl, None, op_scores[state.t2i['left_arc']] + left_lbl_score + tg_scores[0])
+                t = ('left_arc', left_lbl, None, op_scores[state.t2i['left_arc']] * left_lbl_score * tg_scores[0])
                 transitions.append(t)
             if state.is_legal('right_arc'):
-                t = ('right_arc', right_lbl, None, op_scores[state.t2i['right_arc']] + right_lbl_score + tg_scores[0])
+                t = ('right_arc', right_lbl, None, op_scores[state.t2i['right_arc']] * right_lbl_score * tg_scores[0])
                 transitions.append(t)
             if state.is_legal('drop'):
-                t = ('drop', None, "O", op_scores[state.t2i['drop']] + lbl_scores[0] + tg_scores[1])
+                t = ('drop', None, trigger, op_scores[state.t2i['drop']] * lbl_scores[0] * trigger_score)
                 transitions.append(t)
 
             # select best legal transition
