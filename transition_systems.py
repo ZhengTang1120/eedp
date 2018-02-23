@@ -137,9 +137,9 @@ class ArcHybridWithDrop(ArcHybrid):
 
     def perform_transition(self, transition, relation=None, trigger=None):
         if transition == 'drop':
-            if trigger:
-                self.buffer[0].pred_feats = "O" if self.buffer[0].feats!="Protein" else "Protein"
             b = self.buffer.pop(0)
+            if trigger:
+                b.pred_feats = "O" if b.feats!="Protein" else "Protein"
             b.pred_parent_id = -1
             b.pred_relation = 'none'
         else:
