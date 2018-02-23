@@ -27,12 +27,12 @@ class ArcHybrid:
 
     # this is only valid for legal transitions
     def is_correct(self, transition):
-        print('cost', transition, self.cost(transition))
+        print('cost', transition[0], self.cost(transition))
         return self.cost(transition) == 0
 
     # this is only valid for legal transitions
     def cost(self, transition):
-        if transition == 'shift':
+        if transition[0] == 'shift':
             b = self.buffer[0]
             c = 0
             # pushing b onto the stack means that
@@ -41,7 +41,7 @@ class ArcHybrid:
             # and will not be able to acquire dependents from {s0, s1} U sigma
             c += sum(1 for d in self.stack if d.parent_id == b.id)
             return c
-        elif transition == 'left_arc':
+        elif transition[0] == 'left_arc':
             s0 = self.stack[-1]
             s1 = [self.stack[-2]] if len(self.stack) > 1 else []
             b = [self.buffer[0]]
@@ -53,7 +53,7 @@ class ArcHybrid:
             # and will not be able to acquire dependents from {b} U beta
             c += sum(1 for d in b + beta if d.parent_id == s0.id)
             return c
-        elif transition == 'right_arc':
+        elif transition[0] == 'right_arc':
             s0 = self.stack[-1]
             c = 0
             # adding the arc (s1, s0) and popping s0 from the stack means that
@@ -97,14 +97,15 @@ class ArcHybridWithDrop(ArcHybrid):
             return super().is_legal(transition)
 
     def cost(self, transition):
-        if transition == 'drop':
+        if transition[0] == 'drop':
             b = self.buffer[0]
             entries = self.buffer[1:] + self.stack
             c = 0
             c += sum(1 for h in entries if h.id == b.parent_id)
             c += sum(1 for d in entries if d.parent_id == b.id)
+            c += 1 if b.feats != t[2] else 0
             return c
-        elif transition == 'shift':
+        elif transition[0] == 'shift':
             b = self.buffer[0]
             c = 1 if b.parent_id == -1 else 0
             # pushing b onto the stack means that
@@ -112,8 +113,9 @@ class ArcHybridWithDrop(ArcHybrid):
             c += sum(1 for h in self.stack[:-1] if h.id == b.parent_id)
             # and will not be able to acquire dependents from {s0, s1} U sigma
             c += sum(1 for d in self.stack if d.parent_id == b.id)
+            c += 1 if b.feats != t[2] else 0
             return c
-        elif transition == 'left_arc':
+        elif transition[0] == 'left_arc':
             s0 = self.stack[-1]
             s1 = [self.stack[-2]] if len(self.stack) > 1 else []
             b = self.buffer[0]
@@ -125,7 +127,7 @@ class ArcHybridWithDrop(ArcHybrid):
             # and will not be able to acquire dependents from {b} U beta
             c += sum(1 for d in [b] + beta if d.parent_id == s0.id)
             return c
-        elif transition == 'right_arc':
+        elif transition[0] == 'right_arc':
             s0 = self.stack[-1]
             c = 0
             # adding the arc (s1, s0) and popping s0 from the stack means that
