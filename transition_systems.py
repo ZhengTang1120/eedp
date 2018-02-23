@@ -103,7 +103,7 @@ class ArcHybridWithDrop(ArcHybrid):
             c = 0
             c += sum(1 for h in entries if h.id == b.parent_id)
             c += sum(1 for d in entries if d.parent_id == b.id)
-            c += 1 if b.feats != t[2] else 0
+            c += 1 if b.feats != transition[2] else 0
             return c
         elif transition[0] == 'shift':
             b = self.buffer[0]
@@ -113,7 +113,7 @@ class ArcHybridWithDrop(ArcHybrid):
             c += sum(1 for h in self.stack[:-1] if h.id == b.parent_id)
             # and will not be able to acquire dependents from {s0, s1} U sigma
             c += sum(1 for d in self.stack if d.parent_id == b.id)
-            c += 1 if b.feats != t[2] else 0
+            c += 1 if b.feats != transition[2] else 0
             return c
         elif transition[0] == 'left_arc':
             s0 = self.stack[-1]
