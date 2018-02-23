@@ -191,7 +191,7 @@ class ArcHybridParser:
         lbl_hidden = dy.tanh(self.dep_lbl_hidden.expr() * input + self.dep_lbl_hidden_bias.expr())
         lbl_output = self.dep_lbl_output.expr() * lbl_hidden + self.dep_lbl_output_bias.expr()
         # return scores
-        return op_output, lbl_output
+        return dy.softmax(op_output), dy.softmax(lbl_output)
 
     def evaluate_events(self, stack, buffer, features):
         # construct input vector
@@ -215,7 +215,7 @@ class ArcHybridParser:
         tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * t + self.tg_lbl_hidden_bias.expr())
         tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
         # return scores
-        return op_output, lbl_output, tg_output
+        return dy.softmax(op_output), dy.softmax(lbl_output), dy.softmax(tg_output)
 
     def train_dependencies(self, sentences):
         self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations)
