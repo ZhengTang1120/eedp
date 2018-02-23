@@ -27,7 +27,7 @@ class ArcHybrid:
 
     # this is only valid for legal transitions
     def is_correct(self, transition):
-        print('cost', transition[0], self.cost(transition))
+        # print('cost', transition[0], self.cost(transition))
         return self.cost(transition) == 0
 
     # this is only valid for legal transitions
@@ -73,7 +73,6 @@ class ArcHybrid:
             parent = self.buffer[0]
             child.pred_parent_id = parent.id
             child.pred_relation = relation
-            parent.is_parent = True
         elif transition == 'right_arc':
             child = self.stack.pop()
             parent = self.stack[-1]
@@ -103,7 +102,8 @@ class ArcHybridWithDrop(ArcHybrid):
             c = 0
             c += sum(1 for h in entries if h.id == b.parent_id)
             c += sum(1 for d in entries if d.parent_id == b.id)
-            c += 1 if b.feats != transition[2] else 0
+            feats = b.feats if b.feats!="Protein" else "O"
+            c += 1 if feats != transition[2] else 0
             return c
         elif transition[0] == 'shift':
             b = self.buffer[0]
@@ -113,7 +113,8 @@ class ArcHybridWithDrop(ArcHybrid):
             c += sum(1 for h in self.stack[:-1] if h.id == b.parent_id)
             # and will not be able to acquire dependents from {s0, s1} U sigma
             c += sum(1 for d in self.stack if d.parent_id == b.id)
-            c += 1 if b.feats != transition[2] else 0
+            feats = b.feats if b.feats!="Protein" else "O"
+            c += 1 if feats != transition[2] else 0
             return c
         elif transition[0] == 'left_arc':
             s0 = self.stack[-1]

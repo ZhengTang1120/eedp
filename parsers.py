@@ -264,8 +264,6 @@ class ArcHybridParser:
                         ix = state.t2i['shift']
                         if triggers:
                             for j, tg in enumerate(triggers, start=1):
-                                if (hasattr(state.buffer[0], 'is_parent') and state.buffer[0].is_parent and j == 1):
-                                    continue
                                 t = Transition('shift', None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
                                 legal_transitions.append(t)
                         else:
@@ -294,27 +292,28 @@ class ArcHybridParser:
                     if state.is_legal('drop'):
                         ix = state.t2i['drop']
                         if triggers:
-                            t = Transition('drop', None, "O", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[1], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
-                            legal_transitions.append(t)
+                            for j, tg in enumerate(triggers, start=1):
+                                t = Transition('drop', None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
+                                legal_transitions.append(t)
                         else:
                             t = Transition('drop', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
                             legal_transitions.append(t)
-                    print('---')
-                    print('legal',legal_transitions)
+                    # print('---')
+                    # print('legal',legal_transitions)
 
                     # collect all correct transitions
                     correct_transitions = []
                     for t in legal_transitions:
                         if state.is_correct(t):
-                            if t.op not in ['shift', 'drop']:
-                                print(t.label, state.stack[-1].relation)
+                            # if t.op not in ['shift', 'drop']:
+                            #     print(t.label, state.stack[-1].relation)
                             if t.op in ['shift', 'drop'] or t.label == state.stack[-1].relation:
                                 correct_transitions.append(t)
 
-                    print('correct',correct_transitions)
-                    print('sentence',sentence)
-                    print(state.stack)
-                    print(state.buffer)
+                    # print('correct',correct_transitions)
+                    # print('sentence',sentence)
+                    # print(state.stack)
+                    # print(state.buffer)
                     # select transition
                     best_legal = max(legal_transitions, key=attrgetter('score'))
                     best_correct = max(correct_transitions, key=attrgetter('score'))
