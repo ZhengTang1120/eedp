@@ -217,6 +217,8 @@ class ConllEntry:
         lemma = lemma if lemma != '_' else None
         feats = feats if feats != '_' else None
         head = int(head)
+        if head == -1:
+            feats = "O"
         phead = int(phead) if phead != '_' else None
         pdeprel = pdeprel if pdeprel != '_' else None
         return ConllEntry(id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel)
