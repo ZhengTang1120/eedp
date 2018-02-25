@@ -42,13 +42,22 @@ def parse_event_tree(event_tree, parent):
         for child in event_tree[parent]:
             if child not in event_tree or event_tree[child][0].deprel == "multitoken":
                 if child.deprel != "multitoken":
-                    temp[child.deprel].append(entities[child.form+str(child.id)+str(i)][0])
+                    try:
+                        temp[child.deprel].append(entities[child.form+str(child.id)+str(i)][0])
+                    except:
+                        raise Exception(str(child)+" child")
             else:
-                temp[child.deprel].append(parse_event_tree(event_tree, child))
+                try:
+                    temp[child.deprel].append(parse_event_tree(event_tree, child))
+                except:
+                    raise Exception(str(child)+" child2")
         if temp:
             event = "E"+str(event_count)
             event_count += 1
-            events.append((event, parent.feats, entities[parent.form+str(parent.id)+str(i)][0], temp))
+            try:
+                events.append((event, parent.feats, entities[parent.form+str(parent.id)+str(i)][0], temp))
+            except:
+                raise Exception(parent)
     else:
         for child in event_tree[parent]:
             parse_event_tree(event_tree, child)
@@ -88,6 +97,8 @@ if __name__ == '__main__':
                             if multitoken_s != -1:
                                 multitoken_s = -1
                             else:
+                                if not token.feats:
+                                    token.feats = "O"
                                 entities[token.form+str(token.id)+str(i)] = ("T"+str(len(entities)+len(a1)+1), 
                                     token.feats+" "+str(sent_ann.startOffsets[j-1])+" "+str(sent_ann.endOffsets[j-1]), 
                                     token.form)
@@ -99,12 +110,16 @@ if __name__ == '__main__':
                                     token.feats+" "+str(multitoken_s)+" "+str(last_end), 
                                     txt[multitoken_s: last_end]) 
                     elif token.deprel != "multitoken":
+                        tid=None
                         for w in a1:
                             if w.end == sent_ann.endOffsets[j-1]:
                                 tid = w.id
                                 form = w.text
                                 break
-                        proteins[token.form+str(token.id)+str(i)] = [tid]
+                        if tid:
+                            proteins[token.form+str(token.id)+str(i)] = [tid]
+                        else:
+                            print (str(token)+" invalid")
         for id in entities:
             line = ""
             for e in entities[id][:-1]:
@@ -121,10 +136,9 @@ if __name__ == '__main__':
                     event_tree[head].append(token)
             try:
                 parse_event_tree(event_tree, sent[0])
-            except:
-                print (root)
+            except Exception as e:
+                print (e)
         event_set = set()
-
         for e in events:
             line = e[0]+"\t"+e[1]+":"+e[2]
             k_list = list(e[-1].keys())
