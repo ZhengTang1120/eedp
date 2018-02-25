@@ -75,7 +75,7 @@ if __name__ == '__main__':
             random.shuffle(sentences)
             parser.train_dependencies(sentences)
         if args.evsfile:
-            # random.shuffle(events)
+            random.shuffle(events)
             parser.train_events(events)
         name = f'{args.outdir}/parser{epoch+1:03}'
         print('saving', name)
