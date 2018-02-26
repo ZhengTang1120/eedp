@@ -117,7 +117,7 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the trigger label
             out_size = 1 + len(self.i2tg)
-            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 2))
+            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size))
             self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
             self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
             self.tg_lbl_output_bias = self.model.add_parameters((out_size))
@@ -211,7 +211,7 @@ class ArcHybridParser:
         lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
         lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
         # predict trigger label
-        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * t + self.tg_lbl_hidden_bias.expr())
+        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * b + self.tg_lbl_hidden_bias.expr())
         tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
         # return scores
         return dy.softmax(op_output), dy.softmax(lbl_output), dy.softmax(tg_output)
