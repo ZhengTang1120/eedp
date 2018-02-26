@@ -117,7 +117,7 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the trigger label
             out_size = 1 + len(self.i2tg)
-            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 5))
+            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 2))
             self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
             self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
             self.tg_lbl_output_bias = self.model.add_parameters((out_size))
@@ -198,11 +198,11 @@ class ArcHybridParser:
         s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
         s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
         s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
-        b1 = features[buffer[0].id + 1] if buffer[0].id + 1 < len(features) else self.empty
-        b2 = features[buffer[0].id + 2] if buffer[0].id + 2 < len(features) else self.empty
-        bp1 = features[buffer[0].id - 1] if buffer[0].id - 1 >= 0 else self.empty
-        bp2 = features[buffer[0].id -1 ] if buffer[0].id - 2 >= 0 else self.empty
-        t = dy.concatenate([bp2, bp1, b, b1, b2])
+        # b1 = features[buffer[0].id + 1] if buffer[0].id + 1 < len(features) else self.empty
+        # b2 = features[buffer[0].id + 2] if buffer[0].id + 2 < len(features) else self.empty
+        # bp1 = features[buffer[0].id - 1] if buffer[0].id - 1 >= 0 else self.empty
+        # bp2 = features[buffer[0].id -1 ] if buffer[0].id - 2 >= 0 else self.empty
+        t = dy.concatenate([b, s0])
         input = dy.concatenate([b, s0, s1, s2])
         # predict action
         op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
