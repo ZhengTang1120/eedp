@@ -37,15 +37,19 @@ def make_vocabularies(sentences):
     word_count = Counter()
     tag_count = Counter()
     relation_count = Counter()
+    char_count = Counter()
     for sentence in sentences:
         word_count.update(e.norm for e in sentence)
+        for e in sentence:
+            char_count.update(c for c in e.norm)
         tag_count.update(e.postag for e in sentence)
         relation_count.update(e.relation for e in sentence)
     special = ['*unk*', '*pad*']
     words = special + list(word_count.keys())
     tags = special + list(tag_count.keys())
     rels = list(relation_count.keys())
-    return (word_count, words, tags, rels)
+    chars = special + list(char_count.keys())
+    return (word_count, words, tags, chars, rels)
 
 def make_vocabularies3(events):
     """gets a corpus and returns (word counts, words, tags, relations)"""
@@ -53,9 +57,12 @@ def make_vocabularies3(events):
     tag_count = Counter()
     relation_count = Counter()
     entity_count = Counter()
+    char_count = Counter()
     for event in events:
         if len(event) > 2:
             word_count.update(e.norm for e in event)
+            for e in event:
+                char_count.update(c for c in e.norm)
             tag_count.update(e.postag for e in event)
             relation_count.update(e.relation for e in event if e.relation != 'none')
             entity_count.update(e.feats for e in event)
@@ -64,7 +71,8 @@ def make_vocabularies3(events):
     tags = special + list(tag_count.keys())
     rels = list(relation_count.keys())
     entities = list(entity_count.keys())
-    return (word_count, words, tags, entities, rels)
+    chars = special + list(char_count.keys())
+    return (word_count, words, tags, chars, entities, rels)
 
 def make_vocabularies2(sentences, events):
     """gets a corpus and returns (word counts, words, tags, dependencies, events)"""
@@ -73,12 +81,18 @@ def make_vocabularies2(sentences, events):
     dep_relation_count = Counter()
     ev_relation_count = Counter()
     entity_count = Counter()
+    char_count = Counter()
     for sentence in sentences:
         word_count.update(e.norm for e in sentence)
+        for e in sentence:
+            char_count.update(c for c in e.norm)
         tag_count.update(e.postag for e in sentence)
         dep_relation_count.update(e.relation for e in sentence)
     for event in events:
         word_count.update(e.norm for e in event)
+        for e in event:
+            char_count.update(c for c in e.norm)
+        char_count.update(c for c in e.norm for e in event)
         tag_count.update(e.postag for e in event)
         ev_relation_count.update(e.relation for e in event if e.relation != 'none')
         entity_count.update(e.feats for e in event)
@@ -88,7 +102,8 @@ def make_vocabularies2(sentences, events):
     dep_rels = list(dep_relation_count.keys())
     ev_rels = list(ev_relation_count.keys())
     entities = list(entity_count.keys())
-    return (word_count, words, tags, entities, ev_rels, dep_rels)
+    chars = special + list(char_count.keys())
+    return (word_count, words, tags, chars, entities, ev_rels, dep_rels)
 
 
 

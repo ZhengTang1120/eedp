@@ -17,9 +17,9 @@ Transition = namedtuple('Transition', 'op label trigger score dy_score')
 
 class ArcHybridParser:
 
-    def __init__(self, word_count, words, tags,
+    def __init__(self, word_count, words, tags, chars,
             entities, dep_relations, ev_relations,
-            w_embed_size, t_embed_size, e_embed_size,
+            w_embed_size, t_embed_size, c_embed_size, clstm_hidden_size, e_embed_size,
             lstm_hidden_size, lstm_num_layers,
             dep_op_hidden_size, dep_lbl_hidden_size,
             ev_op_hidden_size, ev_lbl_hidden_size,
@@ -32,6 +32,7 @@ class ArcHybridParser:
         # mappings from ids to terms
         self.i2w = words
         self.i2t = tags
+        self.i2c = chars
         self.i2e = ["Protein", "O", "*pad*"]
         self.dep_relations = dep_relations
         self.ev_relations = ev_relations
@@ -42,11 +43,14 @@ class ArcHybridParser:
         self.w2i = {w:i for i,w in enumerate(words)}
         self.t2i = {t:i for i,t in enumerate(tags)}
         self.e2i = {e:i for i,e in enumerate(self.i2e)}
+        self.c2i = {c:i for i,c in enumerate(chars)}
         if entities:
             self.tg2i = {e:i for i,e in enumerate(self.i2tg)}
 
         self.w_embed_size = w_embed_size
         self.t_embed_size = t_embed_size
+        self.c_embed_size = c_embed_size
+        self.clstm_hidden_size = clstm_hidden_size
         self.e_embed_size = e_embed_size
         self.lstm_hidden_size = lstm_hidden_size * 2 # must be even
         self.lstm_num_layers = lstm_num_layers
@@ -65,20 +69,32 @@ class ArcHybridParser:
         # words and tags, entities embeddings
         self.wlookup = self.model.add_lookup_parameters((len(self.i2w), self.w_embed_size))
         self.tlookup = self.model.add_lookup_parameters((len(self.i2t), self.t_embed_size))
+        self.clookup = self.model.add_lookup_parameters((len(self.i2c), self.c_embed_size))
         self.elookup = self.model.add_lookup_parameters((len(self.i2e), self.e_embed_size))
 
         # feature extractor
         self.bilstm = dy.BiRNNBuilder(
                 self.lstm_num_layers,
-                self.w_embed_size + self.t_embed_size + self.e_embed_size,
+                self.w_embed_size + self.t_embed_size + self.clstm_hidden_size + self.e_embed_size,
                 self.lstm_hidden_size,
                 self.model,
                 dy.VanillaLSTMBuilder,
         )
 
+        # char encoder
+        self.cbilstm = dy.BiRNNBuilder(
+                self.lstm_num_layers,
+                self.c_embed_size,
+                self.clstm_hidden_size,
+                self.model,
+                dy.VanillaLSTMBuilder,
+        )
+        self.char_to_lstm      = self.model.add_parameters((self.clstm_hidden_size, self.c_embed_size))
+        self.char_to_lstm_bias = self.model.add_parameters((self.clstm_hidden_size))
+
         # transform word+pos vector into a vector similar to the lstm output
         # used to generate padding vectors
-        self.word_to_lstm      = self.model.add_parameters((self.lstm_hidden_size, self.w_embed_size + self.t_embed_size + self.e_embed_size))
+        self.word_to_lstm      = self.model.add_parameters((self.lstm_hidden_size, self.w_embed_size + self.t_embed_size + self.clstm_hidden_size + self.e_embed_size))
         self.word_to_lstm_bias = self.model.add_parameters((self.lstm_hidden_size))
 
         if self.dep_relations:
@@ -117,16 +133,17 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the trigger label
             out_size = 1 + len(self.i2tg)
-            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size))
+            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 4))
             self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
             self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
             self.tg_lbl_output_bias = self.model.add_parameters((out_size))
 
     def save(self, name):
         params = (
-            self.word_count, self.i2w, self.i2t,
+            self.word_count, self.i2w, self.i2t, self.i2c,
             self.entities, self.dep_relations, self.ev_relations,
-            self.w_embed_size, self.t_embed_size, self.e_embed_size,
+            self.w_embed_size, self.t_embed_size,
+            self.c_embed_size, self.clstm_hidden_size, self.e_embed_size,
             self.lstm_hidden_size // 2, self.lstm_num_layers,
             self.dep_op_hidden_size, self.dep_lbl_hidden_size,
             self.ev_op_hidden_size, self.ev_lbl_hidden_size,
@@ -150,8 +167,10 @@ class ArcHybridParser:
     def set_empty_vector(self):
         w_pad = self.wlookup[self.w2i['*pad*']]
         t_pad = self.tlookup[self.t2i['*pad*']]
-        e_pad = self.elookup[self.e2i['*pad*']] #??
-        v_pad = dy.concatenate([w_pad, t_pad, e_pad])
+        c_pad = self.clookup[self.c2i['*pad*']]
+        c_pad = self.char_to_lstm.expr() * c_pad + self.char_to_lstm_bias.expr()
+        e_pad = self.elookup[self.e2i['*pad*']]
+        v_pad = dy.concatenate([w_pad, t_pad, c_pad, e_pad])
         i_vec = self.word_to_lstm.expr() * v_pad + self.word_to_lstm_bias.expr()
         self.empty = dy.tanh(i_vec)
 
@@ -165,13 +184,19 @@ class ArcHybridParser:
                 drop_word = random.random() < self.alpha / (c + self.alpha)
             # get word and tag ids
             w_id = unk if drop_word else self.w2i.get(entry.norm, unk)
+            c_seq = list()
+            for c in entry.norm:
+                c_id = self.c2i.get(c, self.c2i['*unk*'])
+                c_v = self.clookup[c_id]
+                c_seq.append(c_v)
+            c_vec = self.cbilstm.transduce(c_seq)[-1]
             t_id = self.t2i[entry.postag]
             e_id = self.e2i[entry.feats] if entry.feats == "Protein" else self.e2i["O"]
             # get word and tag embbedding in the corresponding entry
             w_vec = self.wlookup[w_id]
             t_vec = self.tlookup[t_id]
             e_vec = self.elookup[e_id]
-            i_vec = dy.concatenate([w_vec, t_vec, e_vec])
+            i_vec = dy.concatenate([w_vec, t_vec, c_vec, e_vec])
             inputs.append(i_vec)
         outputs = self.bilstm.transduce(inputs)
         return outputs
@@ -198,11 +223,6 @@ class ArcHybridParser:
         s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
         s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
         s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
-        # b1 = features[buffer[0].id + 1] if buffer[0].id + 1 < len(features) else self.empty
-        # b2 = features[buffer[0].id + 2] if buffer[0].id + 2 < len(features) else self.empty
-        # bp1 = features[buffer[0].id - 1] if buffer[0].id - 1 >= 0 else self.empty
-        # bp2 = features[buffer[0].id -1 ] if buffer[0].id - 2 >= 0 else self.empty
-        t = dy.concatenate([b, s0])
         input = dy.concatenate([b, s0, s1, s2])
         # predict action
         op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
@@ -211,7 +231,7 @@ class ArcHybridParser:
         lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
         lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
         # predict trigger label
-        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * b + self.tg_lbl_hidden_bias.expr())
+        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
         tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
         # return scores
         return dy.softmax(op_output), dy.softmax(lbl_output), dy.softmax(tg_output)

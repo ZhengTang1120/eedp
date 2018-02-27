@@ -5,12 +5,14 @@ from utils import *
 from parsers import ArcHybridParser
 import os
 
-def make_parser(args, word_count, words, tags, entities=None, ev_rels=None, dep_rels=None):
+def make_parser(args, word_count, words, tags, chars, entities=None, ev_rels=None, dep_rels=None):
     return ArcHybridParser(
-        word_count, words, tags, entities,
+        word_count, words, tags, chars, entities,
         dep_rels, ev_rels,
         args.w_embed_dim,
         args.t_embed_dim,
+        args.c_embed_dim,
+        args.clstm_hidden_size,
         args.e_embed_dim,
         args.lstm_hidden_size,
         args.lstm_num_layers,
@@ -33,6 +35,8 @@ if __name__ == '__main__':
     parser.add_argument('--outdir', default='out')
     parser.add_argument('--w_embed_dim',         type=int,   default=100)
     parser.add_argument('--t_embed_dim',         type=int,   default=25)
+    parser.add_argument('--c_embed_dim',         type=int,   default=25)
+    parser.add_argument('--clstm_hidden_size',    type=int,   default=50)
     parser.add_argument('--e_embed_dim',         type=int,   default=25)
     parser.add_argument('--lstm_hidden_size',    type=int,   default=125)
     parser.add_argument('--lstm_num_layers',     type=int,   default=2)
