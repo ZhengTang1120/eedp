@@ -75,7 +75,7 @@ class ArcHybridParser:
         # feature extractor
         self.bilstm = dy.BiRNNBuilder(
                 self.lstm_num_layers,
-                self.w_embed_size + self.t_embed_size + self.clstm_hidden_size + self.e_embed_size,
+                self.w_embed_size + self.t_embed_size  + self.e_embed_size,
                 self.lstm_hidden_size,
                 self.model,
                 dy.VanillaLSTMBuilder,
@@ -94,7 +94,7 @@ class ArcHybridParser:
 
         # transform word+pos vector into a vector similar to the lstm output
         # used to generate padding vectors
-        self.word_to_lstm      = self.model.add_parameters((self.lstm_hidden_size, self.w_embed_size + self.t_embed_size + self.clstm_hidden_size + self.e_embed_size))
+        self.word_to_lstm      = self.model.add_parameters((self.lstm_hidden_size, self.w_embed_size + self.t_embed_size +  self.e_embed_size))
         self.word_to_lstm_bias = self.model.add_parameters((self.lstm_hidden_size))
 
         if self.dep_relations:
@@ -170,7 +170,7 @@ class ArcHybridParser:
         c_pad = self.clookup[self.c2i['*pad*']]
         c_pad = self.char_to_lstm.expr() * c_pad + self.char_to_lstm_bias.expr()
         e_pad = self.elookup[self.e2i['*pad*']]
-        v_pad = dy.concatenate([w_pad, t_pad, c_pad, e_pad])
+        v_pad = dy.concatenate([w_pad, t_pad, e_pad])
         i_vec = self.word_to_lstm.expr() * v_pad + self.word_to_lstm_bias.expr()
         self.empty = dy.tanh(i_vec)
 
@@ -184,19 +184,19 @@ class ArcHybridParser:
                 drop_word = random.random() < self.alpha / (c + self.alpha)
             # get word and tag ids
             w_id = unk if drop_word else self.w2i.get(entry.norm, unk)
-            c_seq = list()
-            for c in entry.norm:
-                c_id = self.c2i.get(c, self.c2i['*unk*'])
-                c_v = self.clookup[c_id]
-                c_seq.append(c_v)
-            c_vec = self.cbilstm.transduce(c_seq)[-1]
+            # c_seq = list()
+            # for c in entry.norm:
+            #     c_id = self.c2i.get(c, self.c2i['*unk*'])
+            #     c_v = self.clookup[c_id]
+            #     c_seq.append(c_v)
+            # c_vec = self.cbilstm.transduce(c_seq)[-1]
             t_id = self.t2i[entry.postag]
             e_id = self.e2i[entry.feats] if entry.feats == "Protein" else self.e2i["O"]
             # get word and tag embbedding in the corresponding entry
             w_vec = self.wlookup[w_id]
             t_vec = self.tlookup[t_id]
             e_vec = self.elookup[e_id]
-            i_vec = dy.concatenate([w_vec, t_vec, c_vec, e_vec])
+            i_vec = dy.concatenate([w_vec, t_vec, e_vec])
             inputs.append(i_vec)
         outputs = self.bilstm.transduce(inputs)
         return outputs
