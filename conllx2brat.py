@@ -35,7 +35,7 @@ def parse_annotations(annotations):
             yield EventMention(id, label, trigger, dict(arguments))
 
 def parse_event_tree(event_tree, parent):
-    global event_count, entities, i, root, events
+    global event_count, entities, i, root, events, missing_entities
     event = None
     if parent.head != -1:
         temp = defaultdict(list)
@@ -43,20 +43,23 @@ def parse_event_tree(event_tree, parent):
             if child not in event_tree or event_tree[child][0].deprel == "multitoken":
                 if child.deprel != "multitoken":
                     try:
-                        temp[child.deprel].append(entities[child.form+str(child.id)+str(i)][0])
+                        temp[child.deprel].append((entities[child.form+str(child.id)+str(i)][0],child.real_deprel))
                     except:
-                        raise Exception(str(child)+" child")
+                        print (child.form+str(child.id)+str(i) in missing_entities)
+                        raise Exception(child)
             else:
                 try:
-                    temp[child.deprel].append(parse_event_tree(event_tree, child))
+                    temp[child.deprel].append((parse_event_tree(event_tree, child), child.real_deprel))
                 except:
-                    raise Exception(str(child)+" child2")
+                    print (child.form+str(child.id)+str(i) in missing_entities)
+                    raise Exception(child)
         if temp:
             event = "E"+str(event_count)
             event_count += 1
             try:
                 events.append((event, parent.feats, entities[parent.form+str(parent.id)+str(i)][0], temp))
             except:
+                print (parent.form+str(parent.id)+str(i) in missing_entities)
                 raise Exception(parent)
     else:
         for child in event_tree[parent]:
@@ -87,6 +90,7 @@ if __name__ == '__main__':
         entities = dict()
         proteins = dict()
         events = list()
+        missing_entities = dict()
         for i, sent in enumerate(curr_sents):
             sent_ann = doc.sentences[i]
             multitoken_s = -1
@@ -119,6 +123,7 @@ if __name__ == '__main__':
                         if tid:
                             proteins[token.form+str(token.id)+str(i)] = [tid]
                         else:
+                            missing_entities[token.form+str(token.id)+str(i)] = 1
                             print (str(token)+" invalid")
         for id in entities:
             line = ""
@@ -130,9 +135,16 @@ if __name__ == '__main__':
         event_count = 1
         for i, sent in enumerate(curr_sents):
             event_tree = defaultdict(list)
+            sent_ann = doc.sentences[i]
             for j, token in enumerate(sent):
                 head = (sent[token.head] if token.head != -1 else None)
                 if head:
+                    # print (sent_ann.dependencies)
+                    # print (head.id-1, token.id-1)
+                    # print (sent_ann.dependencies.shortest_path(head.id-1, token.id-1))
+                    deprel = sent_ann.dependencies.shortest_path(head.id-1, token.id-1)[0][1] if sent_ann.dependencies.shortest_path(head.id-1, token.id-1) else None
+                    # print (deprel)
+                    token.real_deprel = deprel
                     event_tree[head].append(token)
             try:
                 parse_event_tree(event_tree, sent[0])
@@ -142,33 +154,50 @@ if __name__ == '__main__':
         for e in events:
             line = e[0]+"\t"+e[1]+":"+e[2]
             k_list = list(e[-1].keys())
-            if e[1] == "Binding" and len(e[-1]["Theme"]) > 1:
+            if e[1] == "Binding":
                 theme_list = e[-1]["Theme"]
-                pairs = list(itertools.combinations(theme_list, 2))
-                theme_list = list()
-                for p in pairs:
-                    theme_list.append(p[0]+" Theme2:"+p[1])
-                e[-1]["Theme"] = theme_list
+                if theme_list:
+                    binding_group = defaultdict(list)
+                    for t in theme_list:
+                        binding_group[t[1]].append(t[0])
+                    tuples = list(itertools.product(*list(binding_group.values())))
+                    temp = None
+                    theme_list = list()
+                    for ts in tuples:
+                        temp = ts[0]
+                        if len(ts) > 1:
+                            for i, t in enumerate(ts[1:], start=2):
+                                temp += " Theme"+str(i)+":"+t
+                        theme_list.append((temp,None))
+                    e[-1]["Theme"] = theme_list
             if "Theme" in k_list:
                 k_list.insert(0, k_list.pop(k_list.index("Theme")))
             k_list = [k for k in k_list if k == "Theme" or k == "Cause"]
             for k in k_list:
-                line += " "+k+":"+e[-1][k][0]
+                line += " "+k+":"+e[-1][k][0][0]
             if str(line.split("\t")[1]) not in event_set:
                 t1.write(line+"\n")
                 event_set.add(str(line.split("\t")[1]))
             for k in k_list:
                 l = e[-1][k]
-                pre_v = e[-1][k][0]
+                pre_v = e[-1][k][0][0]
                 pre_eid = e[0]
                 for v in l[1:]:
                     line = line.replace(pre_eid, "E"+str(event_count))
-                    line = line.replace(" "+k+":"+pre_v, " "+k+":"+v)
-                    pre_v = v
-                    pre_eid = "E"+str(event_count)
-                    event_count += 1
+                    line = line.replace(" "+k+":"+pre_v, " "+k+":"+v[0])
                     if str(line.split("\t")[1]) not in event_set:
                         t1.write(line+"\n")
                         event_set.add(str(line.split("\t")[1]))
-
+                        for e2 in events:
+                            for k2 in e2[-1]:
+                                for s in e2[-1][k2]:
+                                    if pre_eid == s[0]:
+                                        e2[-1][k2].append(("E"+str(event_count),s[1]))
+                                        break
+                        pre_v = v[0]
+                        pre_eid = "E"+str(event_count)
+                        event_count += 1
+        write_conllx(root + '.conllx', curr_sents)
         t1.close()
+        print ("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
+        os.system("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
