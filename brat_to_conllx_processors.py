@@ -73,6 +73,7 @@ def get_tbm(annotations, start, end):
         for a in al:
             if "regulation" not in a.label.lower():
                 return a
+        return al[0]
     elif len(al) > 0:
         return al[0]
     else:
