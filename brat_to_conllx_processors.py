@@ -36,17 +36,17 @@ def brat_to_conllx(text, annotations):
                 label = None if tbm is None else tbm.label
                 if label is None:
                     label = 'O'
-                rel, head, hlabel = get_relhead(annotations, starts, ends, tbm, i)
+                rel, head = get_relhead(annotations, starts, ends, tbm, i)
                 entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label, head=head, deprel=rel)
                 conllx.append(entry)
         except Exception as e:
             # get_mention_head() searches for the token's end position
             # in the `ends` list that corresponds to the sentence's tokens,
             # and throws an exception if the provided end does not correspond to any token
-            # print('ERROR: tokenization does not align')
-            # print(e)
-            # print(words)
-            # print(ends)
+            print('ERROR: tokenization does not align')
+            print(e)
+            print(words)
+            print(ends)
             skipped_sentences += 1
             yield [ConllEntry(id=1, form='*skipped*', postag='*skipped*', head=-1, deprel='skipped', feats='O')]
             continue
@@ -64,20 +64,10 @@ def make_projective(entries):
     return entries
 
 def get_tbm(annotations, start, end):
-    al = list()
     """returns the corresponding textbound mention"""
     for a in annotations:
         if a.id.startswith('T') and a.start < end and start < a.end:
-            al.append(a)
-    if len(al) > 1:
-        for a in al:
-            if "regulation" not in a.label.lower():
-                return a
-        return al[0]
-    elif len(al) > 0:
-        return al[0]
-    else:
-        return None
+            return a
 
 def get_mention_head(annotations, ends, mention_id):
     """returns the head token for the given mention id"""
@@ -85,7 +75,7 @@ def get_mention_head(annotations, ends, mention_id):
         if a.id == mention_id:
             try:
                 i = ends.index(a.end)
-                return (i + 1, a.label)
+                return i + 1
             except ValueError:
                 raise Exception(a)
             # i = ends.index(a.end)
@@ -95,11 +85,11 @@ def get_relhead(annotations, starts, ends, tbm, tok):
     """returns the correct relation and head for the given textbound mention"""
     # it the token does not belong to a textbound mention then it should be dropped
     if tbm is None:
-        return 'none', -1, None
+        return 'none', -1
     # if mention is multitoken, all tokens should point to the mention head
     if tbm.end != ends[tok]:
-        head, hlabel = get_mention_head(annotations, ends, tbm.id)
-        return 'multitoken', head, None
+        head = get_mention_head(annotations, ends, tbm.id)
+        return 'multitoken', head
     # if the mention is a trigger, then use the event id
     mention_id = tbm.id
     for a in annotations:
@@ -113,17 +103,14 @@ def get_relhead(annotations, starts, ends, tbm, tok):
                 for arg in args:
                     if arg == mention_id:
                         if checkTrigger(a.trigger, starts, ends, annotations):
-                            head, hlabel = get_mention_head(annotations, ends, a.trigger)
+                            head = get_mention_head(annotations, ends, a.trigger)
                             # collapse theme1, theme2, etc. into theme
                             rel = rel[:-1] if rel[-1].isdigit() else rel
-                            relheads.append((rel, head, hlabel))
+                            relheads.append((rel, head))
     if relheads:
-        for relhead in relheads:
-            if "regulation" not in relhead[-1].lower():
-                return relhead
-        return relheads[0]
+        return relheads[-1]
     # if token has no parent then point it to the root
-    return 'root', 0, None
+    return 'root', 0
 
 def checkTrigger(trigger, starts, ends, annotations):
     for a in annotations:
