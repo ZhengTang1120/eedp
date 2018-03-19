@@ -232,5 +232,5 @@ if __name__ == '__main__':
                             event_count += 1
         write_conllx(root + '.conllx', curr_sents)
         t1.close()
-        print ("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
-        os.system("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
+        # print ("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
+        # os.system("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
