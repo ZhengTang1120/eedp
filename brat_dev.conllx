@@ -92,9 +92,9 @@
 5	RAR	_	_	NN	Protein	8	multitoken	_	_
 6	(	_	_	-LRB-	Protein	8	multitoken	_	_
 7	alpha	_	_	NN	Protein	8	multitoken	_	_
-8	)	_	_	-RRB-	Protein	20	Theme	_	_
+8	)	_	_	-RRB-	Protein	2	Theme	_	_
 9	and	_	_	CC	O	-1	none	_	_
-10	PML-RAR	_	_	NN	Protein	20	Theme	_	_
+10	PML-RAR	_	_	NN	Protein	2	Theme	_	_
 11	mRNAs	_	_	NNS	O	-1	none	_	_
 12	is	_	_	VBZ	O	-1	none	_	_
 13	rapid	_	_	JJ	O	-1	none	_	_
@@ -134,11 +134,11 @@
 21	potentiation	_	_	NN	O	-1	none	_	_
 22	in	_	_	IN	O	-1	none	_	_
 23	the	_	_	DT	O	-1	none	_	_
-24	induction	_	_	NN	Positive_regulation	-1	none	_	_
+24	induction	_	_	NN	Positive_regulation	0	root	_	_
 25	of	_	_	IN	O	-1	none	_	_
 26	2	_	_	CD	O	-1	none	_	_
 27	retinoid	_	_	NN	O	-1	none	_	_
-28	dependent	_	_	JJ	Positive_regulation	0	root	_	_
+28	dependent	_	_	JJ	Positive_regulation	-1	none	_	_
 29	granulocytic	_	_	JJ	O	-1	none	_	_
 30	markers	_	_	NNS	O	-1	none	_	_
 31	,	_	_	,	O	-1	none	_	_
@@ -146,12 +146,12 @@
 33	,	_	_	,	O	-1	none	_	_
 34	granulocyte-colony-stimulating	_	_	JJ	Protein	36	multitoken	_	_
 35	factor	_	_	NN	Protein	36	multitoken	_	_
-36	receptor	_	_	NN	Protein	28	Theme	_	_
+36	receptor	_	_	NN	Protein	24	Theme	_	_
 37	mRNA	_	_	NN	O	-1	none	_	_
 38	and	_	_	CC	O	-1	none	_	_
 39	leukocyte	_	_	NN	Protein	41	multitoken	_	_
 40	alkaline	_	_	NN	Protein	41	multitoken	_	_
-41	phosphatase	_	_	NN	Protein	28	Theme	_	_
+41	phosphatase	_	_	NN	Protein	24	Theme	_	_
 42	.	_	_	.	O	-1	none	_	_
 
 1	However	_	_	RB	O	-1	none	_	_
@@ -188,7 +188,7 @@
 6	RAR	_	_	NN	Protein	9	multitoken	_	_
 7	(	_	_	-LRB-	Protein	9	multitoken	_	_
 8	alpha	_	_	NN	Protein	9	multitoken	_	_
-9	)	_	_	-RRB-	Protein	38	Theme	_	_
+9	)	_	_	-RRB-	Protein	10	Theme	_	_
 10	levels	_	_	NNS	Gene_expression	4	Theme	_	_
 11	and	_	_	CC	O	-1	none	_	_
 12	the	_	_	DT	O	-1	none	_	_
@@ -217,7 +217,7 @@
 35	phenomena	_	_	NNS	O	-1	none	_	_
 36	are	_	_	VBP	O	-1	none	_	_
 37	not	_	_	RB	O	-1	none	_	_
-38	observed	_	_	VBN	Positive_regulation	0	root	_	_
+38	observed	_	_	VBN	Positive_regulation	-1	none	_	_
 39	in	_	_	IN	O	-1	none	_	_
 40	HL-60	_	_	NN	O	-1	none	_	_
 41	promyelocytes	_	_	NNS	O	-1	none	_	_
@@ -699,13 +699,13 @@
 6	and	_	_	CC	O	-1	none	_	_
 7	time	_	_	NN	O	-1	none	_	_
 8	dependent	_	_	JJ	O	-1	none	_	_
-9	increase	_	_	NN	Positive_regulation	-1	none	_	_
+9	increase	_	_	NN	Positive_regulation	0	root	_	_
 10	in	_	_	IN	O	-1	none	_	_
 11	both	_	_	CC	O	-1	none	_	_
 12	c-Fos	_	_	NN	Protein	15	Theme	_	_
 13	and	_	_	CC	O	-1	none	_	_
 14	Jun	_	_	NN	Protein	15	Theme	_	_
-15	immunoreactivity	_	_	NN	Regulation	26	Theme	_	_
+15	immunoreactivity	_	_	NN	Regulation	9	Theme	_	_
 16	in	_	_	IN	O	-1	none	_	_
 17	contrast	_	_	NN	O	-1	none	_	_
 18	to	_	_	TO	O	-1	none	_	_
@@ -1235,15 +1235,15 @@
 1	Diminished	_	_	VBN	Negative_regulation	0	root	_	_
 2	expression	_	_	NN	Gene_expression	1	Theme	_	_
 3	of	_	_	IN	O	-1	none	_	_
-4	TCRzeta	_	_	NN	Protein	12	Theme	_	_
+4	TCRzeta	_	_	NN	Protein	2	Theme	_	_
 5	and	_	_	CC	O	-1	none	_	_
 6	p56	_	_	NN	Protein	9	multitoken	_	_
 7	(	_	_	-LRB-	Protein	9	multitoken	_	_
 8	lck	_	_	NN	Protein	9	multitoken	_	_
-9	)	_	_	-RRB-	Protein	12	Theme	_	_
+9	)	_	_	-RRB-	Protein	2	Theme	_	_
 10	that	_	_	WDT	O	-1	none	_	_
 11	are	_	_	VBP	O	-1	none	_	_
-12	associated	_	_	VBN	Binding	0	root	_	_
+12	associated	_	_	VBN	Binding	-1	none	_	_
 13	with	_	_	IN	O	-1	none	_	_
 14	the	_	_	DT	O	-1	none	_	_
 15	TCR	_	_	NN	O	-1	none	_	_
@@ -1712,13 +1712,13 @@
 11	blood	_	_	NN	O	-1	none	_	_
 12	T	_	_	NN	O	-1	none	_	_
 13	cells	_	_	NNS	O	-1	none	_	_
-14	express	_	_	VBP	Gene_expression	-1	none	_	_
-15	TCRzeta	_	_	NN	Protein	28	Theme	_	_
+14	express	_	_	VBP	Gene_expression	0	root	_	_
+15	TCRzeta	_	_	NN	Protein	14	Theme	_	_
 16	and	_	_	CC	O	-1	none	_	_
 17	p56	_	_	NN	Protein	20	multitoken	_	_
 18	(	_	_	-LRB-	Protein	20	multitoken	_	_
 19	lck	_	_	NN	Protein	20	multitoken	_	_
-20	)	_	_	-RRB-	Protein	28	Theme	_	_
+20	)	_	_	-RRB-	Protein	14	Theme	_	_
 21	,	_	_	,	O	-1	none	_	_
 22	and	_	_	CC	O	-1	none	_	_
 23	in	_	_	IN	O	-1	none	_	_
@@ -2219,7 +2219,7 @@
 1	We	_	_	PRP	O	-1	none	_	_
 2	propose	_	_	VBP	O	-1	none	_	_
 3	that	_	_	IN	O	-1	none	_	_
-4	NFKB2	_	_	NN	Protein	11	Theme	_	_
+4	NFKB2	_	_	NN	Protein	5	Theme	_	_
 5	synthesis	_	_	NN	Gene_expression	8	Cause	_	_
 6	and	_	_	CC	O	-1	none	_	_
 7	processing	_	_	NN	O	-1	none	_	_
@@ -2483,11 +2483,11 @@
 31	clear	_	_	JJ	O	-1	none	_	_
 32	.	_	_	.	O	-1	none	_	_
 
-1	Phosphorylation	_	_	NN	Phosphorylation	13	Cause	_	_
+1	Phosphorylation	_	_	NN	Phosphorylation	1	Theme	_	_
 2	of	_	_	IN	O	-1	none	_	_
 3	the	_	_	DT	O	-1	none	_	_
 4	retinoblastoma	_	_	NN	Protein	5	multitoken	_	_
-5	protein	_	_	NN	Protein	15	Theme	_	_
+5	protein	_	_	NN	Protein	1	Theme	_	_
 6	by	_	_	IN	O	-1	none	_	_
 7	cyclin	_	_	NN	Protein	10	multitoken	_	_
 8	dependent	_	_	JJ	Protein	10	multitoken	_	_
@@ -2523,9 +2523,9 @@
 
 1	Although	_	_	IN	O	-1	none	_	_
 2	a	_	_	DT	O	-1	none	_	_
-3	role	_	_	NN	Regulation	-1	none	_	_
+3	role	_	_	NN	Regulation	0	root	_	_
 4	of	_	_	IN	O	-1	none	_	_
-5	p16	_	_	NN	Protein	20	Theme	_	_
+5	p16	_	_	NN	Protein	3	Cause	_	_
 6	in	_	_	IN	O	-1	none	_	_
 7	this	_	_	DT	O	-1	none	_	_
 8	regulation	_	_	NN	O	-1	none	_	_
@@ -2540,7 +2540,7 @@
 17	so	_	_	RB	O	-1	none	_	_
 18	far	_	_	RB	O	-1	none	_	_
 19	that	_	_	IN	O	-1	none	_	_
-20	loss	_	_	NN	Negative_regulation	0	root	_	_
+20	loss	_	_	NN	Negative_regulation	-1	none	_	_
 21	of	_	_	IN	O	-1	none	_	_
 22	this	_	_	DT	O	-1	none	_	_
 23	tumor	_	_	NN	O	-1	none	_	_
@@ -2665,7 +2665,7 @@
 7	cell	_	_	NN	O	-1	none	_	_
 8	lines	_	_	NNS	O	-1	none	_	_
 9	transient	_	_	JJ	O	-1	none	_	_
-10	overexpression	_	_	NN	Positive_regulation	13	Cause	_	_
+10	overexpression	_	_	NN	Gene_expression	10	Theme	_	_
 11	of	_	_	IN	O	-1	none	_	_
 12	p16	_	_	NN	Protein	10	Theme	_	_
 13	reestablished	_	_	VBD	Positive_regulation	0	root	_	_
@@ -2679,11 +2679,11 @@
 21	paralleled	_	_	VBN	O	-1	none	_	_
 22	by	_	_	IN	O	-1	none	_	_
 23	an	_	_	DT	O	-1	none	_	_
-24	increase	_	_	NN	Positive_regulation	0	root	_	_
+24	increase	_	_	NN	Positive_regulation	-1	none	_	_
 25	of	_	_	IN	O	-1	none	_	_
 26	the	_	_	DT	O	-1	none	_	_
-27	underphosphorylated	_	_	JJ	Negative_regulation	28	multitoken	_	_
-28	form	_	_	NN	Negative_regulation	24	Theme	_	_
+27	underphosphorylated	_	_	JJ	Phosphorylation	28	multitoken	_	_
+28	form	_	_	NN	Phosphorylation	0	root	_	_
 29	of	_	_	IN	O	-1	none	_	_
 30	retinoblastoma	_	_	NN	Protein	31	multitoken	_	_
 31	protein	_	_	NN	Protein	28	Theme	_	_
@@ -3517,7 +3517,7 @@
 26	death	_	_	NN	O	-1	none	_	_
 27	.	_	_	.	O	-1	none	_	_
 
-1	Overexpression	_	_	NN	Positive_regulation	5	Cause	_	_
+1	Overexpression	_	_	NN	Gene_expression	1	Theme	_	_
 2	of	_	_	IN	O	-1	none	_	_
 3	full-length	_	_	JJ	O	-1	none	_	_
 4	ALG-4	_	_	NN	Protein	1	Theme	_	_
@@ -4468,13 +4468,13 @@
 4	lytic	_	_	JJ	O	-1	none	_	_
 5	transcripts	_	_	NNS	O	-1	none	_	_
 6	,	_	_	,	O	-1	none	_	_
-7	BZLF1	_	_	NN	Protein	38	Theme	_	_
+7	BZLF1	_	_	NN	Protein	13	Theme	_	_
 8	and	_	_	CC	O	-1	none	_	_
-9	BHRF1	_	_	NN	Protein	38	Theme	_	_
+9	BHRF1	_	_	NN	Protein	13	Theme	_	_
 10	,	_	_	,	O	-1	none	_	_
 11	were	_	_	VBD	O	-1	none	_	_
 12	also	_	_	RB	O	-1	none	_	_
-13	detected	_	_	VBN	Transcription	-1	none	_	_
+13	detected	_	_	VBN	Transcription	0	root	_	_
 14	in	_	_	IN	O	-1	none	_	_
 15	13	_	_	CD	O	-1	none	_	_
 16	and	_	_	CC	O	-1	none	_	_
@@ -4499,7 +4499,7 @@
 35	are	_	_	VBP	O	-1	none	_	_
 36	most	_	_	RBS	O	-1	none	_	_
 37	likely	_	_	RB	O	-1	none	_	_
-38	expressed	_	_	VBN	Transcription	0	root	_	_
+38	expressed	_	_	VBN	Transcription	-1	none	_	_
 39	by	_	_	IN	O	-1	none	_	_
 40	rare	_	_	JJ	O	-1	none	_	_
 41	cells	_	_	NNS	O	-1	none	_	_
@@ -4707,15 +4707,15 @@
 15	rescued	_	_	VBD	O	-1	none	_	_
 16	"	_	_	``	O	-1	none	_	_
 17	by	_	_	IN	O	-1	none	_	_
-18	overexpression	_	_	NN	Positive_regulation	-1	none	_	_
+18	overexpression	_	_	NN	Gene_expression	18	Theme	_	_
 19	of	_	_	IN	O	-1	none	_	_
 20	transfected	_	_	VBN	O	-1	none	_	_
 21	B	_	_	NN	Protein	22	multitoken	_	_
-22	subunit	_	_	NN	Protein	26	Theme	_	_
+22	subunit	_	_	NN	Protein	18	Theme	_	_
 23	,	_	_	,	O	-1	none	_	_
 24	suggesting	_	_	VBG	O	-1	none	_	_
 25	that	_	_	IN	O	-1	none	_	_
-26	depletion	_	_	NN	Negative_regulation	0	root	_	_
+26	depletion	_	_	NN	Negative_regulation	-1	none	_	_
 27	of	_	_	IN	O	-1	none	_	_
 28	this	_	_	DT	O	-1	none	_	_
 29	subunit	_	_	NN	O	-1	none	_	_
@@ -5882,7 +5882,7 @@
 
 1	Correspondingly	_	_	RB	O	-1	none	_	_
 2	,	_	_	,	O	-1	none	_	_
-3	transfection	_	_	NN	Positive_regulation	0	root	_	_
+3	transfection	_	_	NN	Gene_expression	3	Theme	_	_
 4	of	_	_	IN	O	-1	none	_	_
 5	p50	_	_	NN	Protein	3	Theme	_	_
 6	and	_	_	CC	O	-1	none	_	_
@@ -6619,7 +6619,7 @@
 2	suppressed	_	_	VBD	Negative_regulation	0	root	_	_
 3	the	_	_	DT	O	-1	none	_	_
 4	transcriptions	_	_	NNS	O	-1	none	_	_
-5	through	_	_	IN	Positive_regulation	26	Theme	_	_
+5	through	_	_	IN	Positive_regulation	13	Theme	_	_
 6	the	_	_	DT	O	-1	none	_	_
 7	AP-1	_	_	NN	O	-1	none	_	_
 8	or	_	_	CC	O	-1	none	_	_
@@ -6913,7 +6913,7 @@
 6	I	_	_	NN	Protein	9	multitoken	_	_
 7	kappa	_	_	NN	Protein	9	multitoken	_	_
 8	B	_	_	NN	Protein	9	multitoken	_	_
-9	alpha	_	_	NN	Protein	4	Theme	_	_
+9	alpha	_	_	NN	Protein	2	Theme	_	_
 10	was	_	_	VBD	O	-1	none	_	_
 11	observed	_	_	VBN	O	-1	none	_	_
 12	upon	_	_	IN	O	-1	none	_	_
@@ -7257,13 +7257,13 @@
 29	.	_	_	.	O	-1	none	_	_
 
 1	Whereas	_	_	IN	O	-1	none	_	_
-2	c-Fos	_	_	NN	Protein	16	Theme	_	_
+2	c-Fos	_	_	NN	Protein	8	Theme	_	_
 3	and	_	_	CC	O	-1	none	_	_
-4	c-Jun	_	_	NN	Protein	16	Theme	_	_
+4	c-Jun	_	_	NN	Protein	8	Theme	_	_
 5	heterodimers	_	_	NNS	O	-1	none	_	_
 6	do	_	_	VBP	O	-1	none	_	_
 7	not	_	_	RB	O	-1	none	_	_
-8	exist	_	_	VB	Gene_expression	-1	none	_	_
+8	exist	_	_	VB	Gene_expression	0	root	_	_
 9	in	_	_	IN	O	-1	none	_	_
 10	B	_	_	NN	O	-1	none	_	_
 11	cells	_	_	NNS	O	-1	none	_	_
@@ -7271,7 +7271,7 @@
 13	they	_	_	PRP	O	-1	none	_	_
 14	form	_	_	VBP	Binding	-1	none	_	_
 15	and	_	_	CC	O	-1	none	_	_
-16	bind	_	_	VBP	Binding	0	root	_	_
+16	bind	_	_	VBP	Binding	-1	none	_	_
 17	to	_	_	TO	O	-1	none	_	_
 18	the	_	_	DT	O	-1	none	_	_
 19	X2-box	_	_	NN	O	-1	none	_	_
@@ -8675,13 +8675,13 @@
 7	determine	_	_	VB	O	-1	none	_	_
 8	the	_	_	DT	O	-1	none	_	_
 9	precise	_	_	JJ	O	-1	none	_	_
-10	role	_	_	NN	Regulation	-1	none	_	_
+10	role	_	_	NN	Regulation	0	root	_	_
 11	of	_	_	IN	O	-1	none	_	_
 12	PEBP2	_	_	NN	O	-1	none	_	_
 13	in	_	_	IN	O	-1	none	_	_
 14	the	_	_	DT	O	-1	none	_	_
-15	GM-CSF	_	_	NN	Protein	34	Theme	_	_
-16	promoter	_	_	NN	Entity	34	Site	_	_
+15	GM-CSF	_	_	NN	Protein	10	Theme	_	_
+16	promoter	_	_	NN	Entity	10	Site	_	_
 17	activity	_	_	NN	O	-1	none	_	_
 18	,	_	_	,	O	-1	none	_	_
 19	the	_	_	DT	O	-1	none	_	_
@@ -8767,7 +8767,7 @@
 13	I	_	_	NN	Protein	16	multitoken	_	_
 14	kappa	_	_	NN	Protein	16	multitoken	_	_
 15	B	_	_	NN	Protein	16	multitoken	_	_
-16	alpha	_	_	NN	Protein	26	Theme	_	_
+16	alpha	_	_	NN	Protein	11	Theme	_	_
 17	in	_	_	IN	O	-1	none	_	_
 18	human	_	_	NN	O	-1	none	_	_
 19	T	_	_	NN	O	-1	none	_	_
@@ -8777,7 +8777,7 @@
 23	by	_	_	IN	O	-1	none	_	_
 24	its	_	_	PRP$	O	-1	none	_	_
 25	rapid	_	_	JJ	O	-1	none	_	_
-26	phosphorylation	_	_	NN	Phosphorylation	0	root	_	_
+26	phosphorylation	_	_	NN	Phosphorylation	-1	none	_	_
 27	in	_	_	FW	O	-1	none	_	_
 28	vivo	_	_	FW	O	-1	none	_	_
 29	.	_	_	.	O	-1	none	_	_
@@ -8891,7 +8891,7 @@
 21	human	_	_	NN	O	-1	none	_	_
 22	interleukin-6	_	_	NN	Protein	-1	none	_	_
 23	(	_	_	-LRB-	O	-1	none	_	_
-24	IL-6	_	_	NN	Protein	40	Theme	_	_
+24	IL-6	_	_	NN	Protein	9	Theme	_	_
 25	)	_	_	-RRB-	O	-1	none	_	_
 26	gene	_	_	NN	O	-1	none	_	_
 27	in	_	_	IN	O	-1	none	_	_
@@ -8907,7 +8907,7 @@
 37	basis	_	_	NN	O	-1	none	_	_
 38	of	_	_	IN	O	-1	none	_	_
 39	this	_	_	DT	O	-1	none	_	_
-40	induction	_	_	NN	Positive_regulation	0	root	_	_
+40	induction	_	_	NN	Positive_regulation	-1	none	_	_
 41	by	_	_	IN	O	-1	none	_	_
 42	lipopolysaccharide	_	_	NN	O	-1	none	_	_
 43	(	_	_	-LRB-	O	-1	none	_	_
@@ -9086,7 +9086,7 @@
 6	of	_	_	IN	O	-1	none	_	_
 7	the	_	_	DT	O	-1	none	_	_
 8	constitutive	_	_	JJ	O	-1	none	_	_
-9	Sp1	_	_	NN	Protein	17	Theme	_	_
+9	Sp1	_	_	NN	Protein	15	Theme	_	_
 10	factor	_	_	NN	O	-1	none	_	_
 11	,	_	_	,	O	-1	none	_	_
 12	whose	_	_	WP$	O	-1	none	_	_
@@ -9172,9 +9172,9 @@
 13	tethering	_	_	NN	O	-1	none	_	_
 14	factor	_	_	NN	O	-1	none	_	_
 15	,	_	_	,	O	-1	none	_	_
-16	increased	_	_	VBD	Positive_regulation	-1	none	_	_
+16	increased	_	_	VBD	Positive_regulation	0	root	_	_
 17	the	_	_	DT	O	-1	none	_	_
-18	secretion	_	_	NN	Localization	36	Theme	_	_
+18	secretion	_	_	NN	Localization	16	Theme	_	_
 19	of	_	_	IN	O	-1	none	_	_
 20	monocyte	_	_	NN	Protein	22	multitoken	_	_
 21	chemotactic	_	_	JJ	Protein	22	multitoken	_	_
@@ -9192,7 +9192,7 @@
 33	by	_	_	IN	O	-1	none	_	_
 34	the	_	_	DT	O	-1	none	_	_
 35	leukocytes	_	_	NNS	O	-1	none	_	_
-36	when	_	_	WRB	Positive_regulation	0	root	_	_
+36	when	_	_	WRB	Positive_regulation	-1	none	_	_
 37	they	_	_	PRP	O	-1	none	_	_
 38	were	_	_	VBD	O	-1	none	_	_
 39	stimulated	_	_	VBN	O	-1	none	_	_
@@ -9351,7 +9351,7 @@
 31	chemokines	_	_	NNS	O	-1	none	_	_
 32	.	_	_	.	O	-1	none	_	_
 
-1	Secreted	_	_	VBN	Localization	-1	none	_	_
+1	Secreted	_	_	VBN	Localization	0	root	_	_
 2	from	_	_	IN	O	-1	none	_	_
 3	activated	_	_	VBN	O	-1	none	_	_
 4	T	_	_	NN	O	-1	none	_	_
@@ -9361,9 +9361,9 @@
 8	,	_	_	,	O	-1	none	_	_
 9	bone	_	_	NN	O	-1	none	_	_
 10	marrow	_	_	NN	O	-1	none	_	_
-11	derived	_	_	VBN	Positive_regulation	0	root	_	_
+11	derived	_	_	VBN	Positive_regulation	-1	none	_	_
 12	MIP-1	_	_	NN	Protein	13	multitoken	_	_
-13	alpha	_	_	NN	Protein	11	Theme	_	_
+13	alpha	_	_	NN	Protein	1	Theme	_	_
 14	and	_	_	CC	O	-1	none	_	_
 15	GOS19	_	_	NN	Protein	-1	none	_	_
 16	inhibits	_	_	VBZ	O	-1	none	_	_
@@ -12596,7 +12596,7 @@
 3	stably	_	_	RB	O	-1	none	_	_
 4	or	_	_	CC	O	-1	none	_	_
 5	transiently	_	_	RB	O	-1	none	_	_
-6	transfected	_	_	VBN	Positive_regulation	0	root	_	_
+6	transfected	_	_	VBN	Gene_expression	6	Theme	_	_
 7	with	_	_	IN	O	-1	none	_	_
 8	mutant	_	_	NN	O	-1	none	_	_
 9	CIITA	_	_	NN	Protein	6	Theme	_	_
@@ -12690,7 +12690,7 @@
 14	terminates	_	_	VBZ	Negative_regulation	0	root	_	_
 15	interferon	_	_	NN	Protein	16	multitoken	_	_
 16	beta	_	_	NN	Protein	17	Theme	_	_
-17	expression	_	_	NN	Gene_expression	18	Theme	_	_
+17	expression	_	_	NN	Gene_expression	14	Theme	_	_
 18	initiated	_	_	VBN	Positive_regulation	0	root	_	_
 19	by	_	_	IN	O	-1	none	_	_
 20	interferon	_	_	NN	Protein	23	multitoken	_	_
@@ -13289,7 +13289,7 @@
 50	to	_	_	TO	O	-1	none	_	_
 51	a	_	_	DT	O	-1	none	_	_
 52	v-erb	_	_	NN	Protein	53	multitoken	_	_
-53	A	_	_	NN	Protein	56	Theme	_	_
+53	A	_	_	NN	Protein	49	Theme	_	_
 54	protein	_	_	NN	O	-1	none	_	_
 55	rendered	_	_	VBD	Negative_regulation	56	multitoken	_	_
 56	defective	_	_	JJ	Negative_regulation	0	root	_	_
@@ -14028,7 +14028,7 @@
 14	stimulating	_	_	NN	Protein	15	multitoken	_	_
 15	factor	_	_	NN	Protein	0	root	_	_
 16	(	_	_	-LRB-	O	-1	none	_	_
-17	GM-CSF	_	_	NN	Protein	24	Theme	_	_
+17	GM-CSF	_	_	NN	Protein	21	Cause	_	_
 18	)	_	_	-RRB-	O	-1	none	_	_
 19	gene	_	_	NN	O	-1	none	_	_
 20	are	_	_	VBP	O	-1	none	_	_
@@ -14586,12 +14586,12 @@
 5	cytoplasmic	_	_	JJ	O	-1	none	_	_
 6	inhibitors	_	_	NNS	O	-1	none	_	_
 7	,	_	_	,	O	-1	none	_	_
-8	IkappaBalpha	_	_	NN	Protein	20	Theme	_	_
+8	IkappaBalpha	_	_	NN	Protein	1	Theme	_	_
 9	,	_	_	,	O	-1	none	_	_
-10	IkappaBbeta	_	_	NN	Protein	20	Theme	_	_
+10	IkappaBbeta	_	_	NN	Protein	1	Theme	_	_
 11	,	_	_	,	O	-1	none	_	_
 12	and	_	_	CC	O	-1	none	_	_
-13	IkappaBepsilon	_	_	NN	Protein	20	Theme	_	_
+13	IkappaBepsilon	_	_	NN	Protein	1	Theme	_	_
 14	,	_	_	,	O	-1	none	_	_
 15	by	_	_	IN	Positive_regulation	18	Cause	_	_
 16	these	_	_	DT	O	-1	none	_	_
@@ -14687,7 +14687,7 @@
 2	transfection	_	_	NN	O	-1	none	_	_
 3	experiments	_	_	NNS	O	-1	none	_	_
 4	,	_	_	,	O	-1	none	_	_
-5	overexpression	_	_	NN	Positive_regulation	0	root	_	_
+5	overexpression	_	_	NN	Gene_expression	5	Theme	_	_
 6	of	_	_	IN	O	-1	none	_	_
 7	wild	_	_	JJ	O	-1	none	_	_
 8	type	_	_	NN	O	-1	none	_	_
@@ -16880,16 +16880,16 @@
 24	Stimulation	_	_	NN	O	-1	none	_	_
 25	of	_	_	IN	O	-1	none	_	_
 26	cells	_	_	NNS	O	-1	none	_	_
-27	leads	_	_	VBZ	Positive_regulation	-1	none	_	_
+27	leads	_	_	VBZ	Positive_regulation	0	root	_	_
 28	to	_	_	TO	O	-1	none	_	_
 29	a	_	_	DT	O	-1	none	_	_
 30	rapid	_	_	JJ	O	-1	none	_	_
-31	phosphorylation	_	_	NN	Phosphorylation	43	Cause	_	_
+31	phosphorylation	_	_	NN	Phosphorylation	27	Theme	_	_
 32	of	_	_	IN	O	-1	none	_	_
 33	I	_	_	NN	Protein	36	multitoken	_	_
 34	kappa	_	_	NN	Protein	36	multitoken	_	_
 35	B	_	_	NN	Protein	36	multitoken	_	_
-36	alpha	_	_	NN	Protein	47	Theme	_	_
+36	alpha	_	_	NN	Protein	31	Theme	_	_
 37	,	_	_	,	O	-1	none	_	_
 38	which	_	_	WDT	O	-1	none	_	_
 39	is	_	_	VBZ	O	-1	none	_	_
@@ -16959,13 +16959,13 @@
 23	,	_	_	,	O	-1	none	_	_
 24	that	_	_	WDT	O	-1	none	_	_
 25	specifically	_	_	RB	O	-1	none	_	_
-26	binds	_	_	VBZ	Binding	-1	none	_	_
+26	binds	_	_	VBZ	Binding	0	root	_	_
 27	and	_	_	CC	O	-1	none	_	_
-28	phosphorylates	_	_	VBZ	Phosphorylation	0	root	_	_
+28	phosphorylates	_	_	VBZ	Phosphorylation	-1	none	_	_
 29	I	_	_	NN	Protein	32	multitoken	_	_
 30	kappa	_	_	NN	Protein	32	multitoken	_	_
 31	B	_	_	NN	Protein	32	multitoken	_	_
-32	alpha	_	_	NN	Protein	28	Theme	_	_
+32	alpha	_	_	NN	Protein	26	Theme	_	_
 33	.	_	_	.	O	-1	none	_	_
 
 1	LPS	_	_	NN	O	-1	none	_	_
@@ -17376,7 +17376,7 @@
 21	anhydrase	_	_	NN	Protein	22	multitoken	_	_
 22	II	_	_	CD	Protein	0	root	_	_
 23	(	_	_	-LRB-	O	-1	none	_	_
-24	CAII	_	_	NN	Protein	30	Theme	_	_
+24	CAII	_	_	NN	Protein	9	Theme	_	_
 25	)	_	_	-RRB-	O	-1	none	_	_
 26	,	_	_	,	O	-1	none	_	_
 27	a	_	_	DT	O	-1	none	_	_
@@ -17458,11 +17458,11 @@
 2	results	_	_	NNS	O	-1	none	_	_
 3	suggest	_	_	VBP	O	-1	none	_	_
 4	that	_	_	IN	O	-1	none	_	_
-5	overexpression	_	_	NN	Positive_regulation	9	Cause	_	_
+5	overexpression	_	_	NN	Gene_expression	5	Theme	_	_
 6	of	_	_	IN	O	-1	none	_	_
-7	v-erbA	_	_	NN	Protein	9	Theme	_	_
+7	v-erbA	_	_	NN	Protein	5	Theme	_	_
 8	is	_	_	VBZ	O	-1	none	_	_
-9	required	_	_	VBN	Positive_regulation	0	root	_	_
+9	required	_	_	VBN	Positive_regulation	-1	none	_	_
 10	for	_	_	IN	O	-1	none	_	_
 11	its	_	_	PRP$	O	-1	none	_	_
 12	function	_	_	NN	O	-1	none	_	_
@@ -19073,13 +19073,13 @@
 10	potential	_	_	JJ	O	-1	none	_	_
 11	mechanism	_	_	NN	O	-1	none	_	_
 12	to	_	_	TO	O	-1	none	_	_
-13	account	_	_	VB	Positive_regulation	-1	none	_	_
+13	account	_	_	VB	Positive_regulation	0	root	_	_
 14	for	_	_	IN	O	-1	none	_	_
 15	the	_	_	DT	O	-1	none	_	_
-16	defect	_	_	NN	Negative_regulation	0	root	_	_
+16	defect	_	_	NN	Negative_regulation	-1	none	_	_
 17	in	_	_	IN	O	-1	none	_	_
 18	IL-2	_	_	NN	Protein	19	Theme	_	_
-19	production	_	_	NN	Gene_expression	16	Theme	_	_
+19	production	_	_	NN	Gene_expression	13	Theme	_	_
 20	from	_	_	IN	O	-1	none	_	_
 21	Ipr	_	_	NNP	O	-1	none	_	_
 22	CD4-8-	_	_	JJ	O	-1	none	_	_
@@ -19179,10 +19179,10 @@
 3	we	_	_	PRP	O	-1	none	_	_
 4	analyzed	_	_	VBD	O	-1	none	_	_
 5	the	_	_	DT	O	-1	none	_	_
-6	expression	_	_	NN	Gene_expression	-1	none	_	_
+6	expression	_	_	NN	Gene_expression	0	root	_	_
 7	,	_	_	,	O	-1	none	_	_
 8	DNA	_	_	NN	O	-1	none	_	_
-9	binding	_	_	NN	Binding	0	root	_	_
+9	binding	_	_	NN	Binding	-1	none	_	_
 10	,	_	_	,	O	-1	none	_	_
 11	and	_	_	CC	O	-1	none	_	_
 12	transcriptional	_	_	JJ	O	-1	none	_	_
@@ -19213,7 +19213,7 @@
 37	VitD3	_	_	NN	Protein	38	multitoken	_	_
 38	receptor	_	_	NN	Protein	0	root	_	_
 39	(	_	_	-LRB-	O	-1	none	_	_
-40	VDR	_	_	NN	Protein	9	Theme	_	_
+40	VDR	_	_	NN	Protein	6	Theme	_	_
 41	)	_	_	-RRB-	O	-1	none	_	_
 42	]	_	_	NN	O	-1	none	_	_
 43	in	_	_	IN	O	-1	none	_	_
@@ -19376,11 +19376,11 @@
 11	transcription	_	_	NN	O	-1	none	_	_
 12	nor	_	_	CC	O	-1	none	_	_
 13	the	_	_	DT	O	-1	none	_	_
-14	induced	_	_	JJ	Positive_regulation	-1	none	_	_
+14	induced	_	_	JJ	Positive_regulation	0	root	_	_
 15	RAR-beta	_	_	NN	Protein	16	Theme	_	_
-16	expression	_	_	NN	Gene_expression	18	Theme	_	_
+16	expression	_	_	NN	Gene_expression	14	Theme	_	_
 17	was	_	_	VBD	O	-1	none	_	_
-18	suppressed	_	_	VBN	Negative_regulation	0	root	_	_
+18	suppressed	_	_	VBN	Negative_regulation	-1	none	_	_
 19	by	_	_	IN	O	-1	none	_	_
 20	VitD3	_	_	NN	O	-1	none	_	_
 21	,	_	_	,	O	-1	none	_	_
@@ -20031,11 +20031,11 @@
 1	Transcription	_	_	NN	O	-1	none	_	_
 2	factor	_	_	NN	O	-1	none	_	_
 3	NF-kappaB	_	_	NN	O	-1	none	_	_
-4	regulates	_	_	VBZ	Regulation	-1	none	_	_
-5	inducible	_	_	JJ	Positive_regulation	0	root	_	_
+4	regulates	_	_	VBZ	Regulation	0	root	_	_
+5	inducible	_	_	JJ	Positive_regulation	-1	none	_	_
 6	Oct-2	_	_	NN	Protein	8	Theme	_	_
 7	gene	_	_	NN	Gene_expression	8	multitoken	_	_
-8	expression	_	_	NN	Gene_expression	5	Theme	_	_
+8	expression	_	_	NN	Gene_expression	4	Theme	_	_
 9	in	_	_	IN	O	-1	none	_	_
 10	precursor	_	_	NN	O	-1	none	_	_
 11	B	_	_	NN	O	-1	none	_	_
@@ -20081,7 +20081,7 @@
 11	types	_	_	NNS	O	-1	none	_	_
 12	,	_	_	,	O	-1	none	_	_
 13	Oct-2	_	_	NN	Protein	14	Theme	_	_
-14	expression	_	_	NN	Gene_expression	24	Theme	_	_
+14	expression	_	_	NN	Gene_expression	16	Theme	_	_
 15	is	_	_	VBZ	O	-1	none	_	_
 16	restricted	_	_	JJ	Positive_regulation	0	root	_	_
 17	primarily	_	_	RB	O	-1	none	_	_
@@ -20091,7 +20091,7 @@
 21	and	_	_	CC	O	-1	none	_	_
 22	can	_	_	MD	O	-1	none	_	_
 23	be	_	_	VB	O	-1	none	_	_
-24	induced	_	_	VBN	Positive_regulation	0	root	_	_
+24	induced	_	_	VBN	Positive_regulation	-1	none	_	_
 25	in	_	_	IN	O	-1	none	_	_
 26	precursor	_	_	NN	O	-1	none	_	_
 27	B	_	_	NN	O	-1	none	_	_
@@ -20332,12 +20332,12 @@
 6	enhancer	_	_	NN	O	-1	none	_	_
 7	differs	_	_	VBZ	O	-1	none	_	_
 8	from	_	_	IN	O	-1	none	_	_
-9	induction	_	_	NN	Positive_regulation	-1	none	_	_
+9	induction	_	_	NN	Positive_regulation	0	root	_	_
 10	of	_	_	IN	O	-1	none	_	_
 11	the	_	_	DT	O	-1	none	_	_
 12	proximal	_	_	JJ	O	-1	none	_	_
-13	IL-2	_	_	NN	Protein	25	Theme	_	_
-14	promoter-enhancer	_	_	NN	Entity	25	Site	_	_
+13	IL-2	_	_	NN	Protein	9	Theme	_	_
+14	promoter-enhancer	_	_	NN	Entity	9	Site	_	_
 15	,	_	_	,	O	-1	none	_	_
 16	since	_	_	IN	O	-1	none	_	_
 17	it	_	_	PRP	O	-1	none	_	_
@@ -20348,7 +20348,7 @@
 22	esters	_	_	NNS	O	-1	none	_	_
 23	alone	_	_	RB	O	-1	none	_	_
 24	and	_	_	CC	O	-1	none	_	_
-25	independent	_	_	JJ	Positive_regulation	0	root	_	_
+25	independent	_	_	JJ	Positive_regulation	-1	none	_	_
 26	from	_	_	IN	O	-1	none	_	_
 27	Ca2+	_	_	NN	O	-1	none	_	_
 28	signals	_	_	NNS	O	-1	none	_	_
@@ -20422,7 +20422,7 @@
 23	promoter-enhancer	_	_	NN	Entity	14	Site	_	_
 24	,	_	_	,	O	-1	none	_	_
 25	while	_	_	IN	O	-1	none	_	_
-26	overexpression	_	_	NN	Positive_regulation	-1	none	_	_
+26	overexpression	_	_	NN	Gene_expression	26	Theme	_	_
 27	of	_	_	IN	O	-1	none	_	_
 28	both	_	_	CC	O	-1	none	_	_
 29	GABP	_	_	NN	O	-1	none	_	_
@@ -20727,7 +20727,7 @@
 25	the	_	_	DT	Positive_regulation	26	multitoken	_	_
 26	half-life	_	_	NN	Positive_regulation	0	root	_	_
 27	of	_	_	IN	O	-1	none	_	_
-28	c-jun	_	_	NN	Protein	26	Theme	_	_
+28	c-jun	_	_	NN	Protein	19	Theme	_	_
 29	transcripts	_	_	NNS	O	-1	none	_	_
 30	.	_	_	.	O	-1	none	_	_
 
@@ -21026,13 +21026,13 @@
 10	or	_	_	CC	O	-1	none	_	_
 11	CHO	_	_	NN	O	-1	none	_	_
 12	cells	_	_	NNS	O	-1	none	_	_
-13	expressing	_	_	VBG	Gene_expression	-1	none	_	_
+13	expressing	_	_	VBG	Gene_expression	0	root	_	_
 14	the	_	_	DT	O	-1	none	_	_
 15	CD28	_	_	NN	Protein	16	Theme	_	_
 16	ligands	_	_	NNS	Binding	0	root	_	_
-17	CD80	_	_	NN	Protein	16	Theme	_	_
+17	CD80	_	_	NN	Protein	13	Theme	_	_
 18	or	_	_	CC	O	-1	none	_	_
-19	CD86	_	_	NN	Protein	16	Theme	_	_
+19	CD86	_	_	NN	Protein	13	Theme	_	_
 20	did	_	_	VBD	O	-1	none	_	_
 21	not	_	_	RB	O	-1	none	_	_
 22	lead	_	_	VB	Positive_regulation	0	root	_	_
@@ -21101,7 +21101,7 @@
 4	indicated	_	_	VBD	O	-1	none	_	_
 5	that	_	_	IN	O	-1	none	_	_
 6	CD3	_	_	NN	O	-1	none	_	_
-7	induced	_	_	VBD	Positive_regulation	35	Theme	_	_
+7	induced	_	_	VBD	Positive_regulation	11	Theme	_	_
 8	HSI	_	_	NN	Protein	9	Theme	_	_
 9	phosphorylation	_	_	NN	Phosphorylation	7	Theme	_	_
 10	was	_	_	VBD	O	-1	none	_	_
@@ -21129,7 +21129,7 @@
 32	,	_	_	,	O	-1	none	_	_
 33	and	_	_	CC	O	-1	none	_	_
 34	was	_	_	VBD	O	-1	none	_	_
-35	regulated	_	_	VBN	Regulation	0	root	_	_
+35	regulated	_	_	VBN	Regulation	-1	none	_	_
 36	by	_	_	IN	O	-1	none	_	_
 37	protein	_	_	NN	O	-1	none	_	_
 38	kinase	_	_	NN	O	-1	none	_	_
@@ -21439,7 +21439,7 @@
 3	stimulating	_	_	NN	Protein	4	multitoken	_	_
 4	factor	_	_	NN	Protein	0	root	_	_
 5	(	_	_	-LRB-	O	-1	none	_	_
-6	GM-CSF	_	_	NN	Protein	20	Theme	_	_
+6	GM-CSF	_	_	NN	Protein	14	Theme	_	_
 7	)	_	_	-RRB-	O	-1	none	_	_
 8	is	_	_	VBZ	O	-1	none	_	_
 9	one	_	_	CD	O	-1	none	_	_
@@ -21620,8 +21620,8 @@
 26	.	_	_	.	O	-1	none	_	_
 
 1	The	_	_	DT	O	-1	none	_	_
-2	GM-CSF	_	_	NN	Protein	21	Theme	_	_
-3	promoter	_	_	NN	Entity	21	Site	_	_
+2	GM-CSF	_	_	NN	Protein	12	Theme	_	_
+3	promoter	_	_	NN	Entity	12	Site	_	_
 4	,	_	_	,	O	-1	none	_	_
 5	modified	_	_	VBN	O	-1	none	_	_
 6	in	_	_	IN	O	-1	none	_	_
@@ -21639,7 +21639,7 @@
 18	PMA	_	_	NN	O	-1	none	_	_
 19	and	_	_	CC	O	-1	none	_	_
 20	ionomycin	_	_	NN	O	-1	none	_	_
-21	induction	_	_	NN	Positive_regulation	0	root	_	_
+21	induction	_	_	NN	Positive_regulation	-1	none	_	_
 22	,	_	_	,	O	-1	none	_	_
 23	in	_	_	IN	O	-1	none	_	_
 24	addition	_	_	NN	O	-1	none	_	_
@@ -22558,10 +22558,10 @@
 47	metastasis	_	_	NN	O	-1	none	_	_
 48	.	_	_	.	O	-1	none	_	_
 
-1	Galectin-3	_	_	NNP	Protein	13	Theme	_	_
+1	Galectin-3	_	_	NNP	Protein	4	Theme	_	_
 2	is	_	_	VBZ	O	-1	none	_	_
 3	widely	_	_	RB	O	-1	none	_	_
-4	distributed	_	_	VBN	Gene_expression	-1	none	_	_
+4	distributed	_	_	VBN	Gene_expression	0	root	_	_
 5	in	_	_	IN	O	-1	none	_	_
 6	various	_	_	JJ	O	-1	none	_	_
 7	tissues	_	_	NNS	O	-1	none	_	_
@@ -22570,7 +22570,7 @@
 10	types	_	_	NNS	O	-1	none	_	_
 11	and	_	_	CC	O	-1	none	_	_
 12	is	_	_	VBZ	O	-1	none	_	_
-13	expressed	_	_	VBN	Gene_expression	0	root	_	_
+13	expressed	_	_	VBN	Gene_expression	-1	none	_	_
 14	in	_	_	IN	O	-1	none	_	_
 15	many	_	_	JJ	O	-1	none	_	_
 16	leukocytes	_	_	NNS	O	-1	none	_	_
@@ -22590,10 +22590,10 @@
 2	now	_	_	RB	O	-1	none	_	_
 3	report	_	_	VBP	O	-1	none	_	_
 4	that	_	_	IN	O	-1	none	_	_
-5	galectin-3	_	_	NN	Protein	41	Theme	_	_
+5	galectin-3	_	_	NN	Protein	8	Theme	_	_
 6	is	_	_	VBZ	O	-1	none	_	_
 7	abundantly	_	_	RB	O	-1	none	_	_
-8	expressed	_	_	VBN	Gene_expression	-1	none	_	_
+8	expressed	_	_	VBN	Gene_expression	0	root	_	_
 9	in	_	_	IN	O	-1	none	_	_
 10	a	_	_	DT	O	-1	none	_	_
 11	number	_	_	NN	O	-1	none	_	_
@@ -22626,7 +22626,7 @@
 38	but	_	_	CC	O	-1	none	_	_
 39	is	_	_	VBZ	O	-1	none	_	_
 40	not	_	_	RB	O	-1	none	_	_
-41	expressed	_	_	VBN	Gene_expression	0	root	_	_
+41	expressed	_	_	VBN	Gene_expression	-1	none	_	_
 42	in	_	_	IN	O	-1	none	_	_
 43	non-HTLV-I-infected	_	_	JJ	O	-1	none	_	_
 44	T	_	_	NN	O	-1	none	_	_
@@ -22680,13 +22680,13 @@
 13	expression	_	_	NN	O	-1	none	_	_
 14	,	_	_	,	O	-1	none	_	_
 15	as	_	_	IN	O	-1	none	_	_
-16	undetectable	_	_	JJ	Gene_expression	-1	none	_	_
+16	undetectable	_	_	JJ	Gene_expression	0	root	_	_
 17	or	_	_	CC	O	-1	none	_	_
 18	very	_	_	RB	O	-1	none	_	_
 19	low	_	_	JJ	Gene_expression	20	multitoken	_	_
 20	levels	_	_	NNS	Gene_expression	0	root	_	_
 21	of	_	_	IN	O	-1	none	_	_
-22	galectin-3	_	_	NN	Protein	20	Theme	_	_
+22	galectin-3	_	_	NN	Protein	16	Theme	_	_
 23	were	_	_	VBD	O	-1	none	_	_
 24	found	_	_	VBN	O	-1	none	_	_
 25	in	_	_	IN	O	-1	none	_	_
@@ -22772,7 +22772,7 @@
 39	induction	_	_	NN	O	-1	none	_	_
 40	.	_	_	.	O	-1	none	_	_
 
-1	Transfection	_	_	NN	Positive_regulation	13	Cause	_	_
+1	Transfection	_	_	NN	Gene_expression	1	Theme	_	_
 2	of	_	_	IN	O	-1	none	_	_
 3	human	_	_	NN	O	-1	none	_	_
 4	promonocytic	_	_	JJ	O	-1	none	_	_
@@ -22828,7 +22828,7 @@
 18	and	_	_	CC	O	-1	none	_	_
 19	secretion	_	_	NN	Localization	12	Theme	_	_
 20	of	_	_	IN	O	-1	none	_	_
-21	galectin-3	_	_	NN	Protein	19	Theme	_	_
+21	galectin-3	_	_	NN	Protein	14	Theme	_	_
 22	,	_	_	,	O	-1	none	_	_
 23	which	_	_	WDT	O	-1	none	_	_
 24	in	_	_	IN	O	-1	none	_	_
@@ -22974,11 +22974,11 @@
 1	As	_	_	IN	O	-1	none	_	_
 2	a	_	_	DT	O	-1	none	_	_
 3	homodimer	_	_	NN	O	-1	none	_	_
-4	JunB	_	_	NN	Protein	20	Theme	_	_
+4	JunB	_	_	NN	Protein	8	Theme	_	_
 5	is	_	_	VBZ	O	-1	none	_	_
 6	unable	_	_	JJ	O	-1	none	_	_
 7	to	_	_	TO	O	-1	none	_	_
-8	bind	_	_	VB	Binding	-1	none	_	_
+8	bind	_	_	VB	Binding	0	root	_	_
 9	the	_	_	DT	O	-1	none	_	_
 10	enhancer	_	_	NN	O	-1	none	_	_
 11	;	_	_	:	O	-1	none	_	_
@@ -23089,7 +23089,7 @@
 9	of	_	_	IN	O	-1	none	_	_
 10	the	_	_	DT	O	-1	none	_	_
 11	human	_	_	NN	O	-1	none	_	_
-12	eotaxin	_	_	NN	Protein	8	Theme	_	_
+12	eotaxin	_	_	NN	Protein	2	Theme	_	_
 13	gene	_	_	NN	O	-1	none	_	_
 14	.	_	_	.	O	-1	none	_	_
 
@@ -23212,7 +23212,7 @@
 15	binding	_	_	NN	O	-1	none	_	_
 16	protein	_	_	NN	O	-1	none	_	_
 17	whose	_	_	WP$	O	-1	none	_	_
-18	overexpression	_	_	NN	Positive_regulation	0	root	_	_
+18	overexpression	_	_	NN	Gene_expression	18	Theme	_	_
 19	in	_	_	IN	O	-1	none	_	_
 20	T	_	_	NN	O	-1	none	_	_
 21	cells	_	_	NNS	O	-1	none	_	_
@@ -23805,7 +23805,7 @@
 4	transcription	_	_	NN	Transcription	3	Theme	_	_
 5	of	_	_	IN	O	-1	none	_	_
 6	the	_	_	DT	O	-1	none	_	_
-7	c-fos	_	_	NN	Protein	10	Theme	_	_
+7	c-fos	_	_	NN	Protein	4	Theme	_	_
 8	gene	_	_	NN	O	-1	none	_	_
 9	and	_	_	CC	O	-1	none	_	_
 10	accumulation	_	_	NN	Positive_regulation	3	Theme	_	_
@@ -24197,22 +24197,22 @@
 4	cell	_	_	NN	O	-1	none	_	_
 5	blasts	_	_	NNS	O	-1	none	_	_
 6	up-regulates	_	_	VBZ	Positive_regulation	0	root	_	_
-7	Fas	_	_	NN	Protein	15	Theme	_	_
+7	Fas	_	_	NN	Protein	11	Theme	_	_
 8	and	_	_	CC	O	-1	none	_	_
 9	Fas	_	_	NN	Protein	10	multitoken	_	_
-10	ligand	_	_	NN	Protein	15	Theme	_	_
+10	ligand	_	_	NN	Protein	11	Theme	_	_
 11	expression	_	_	NN	Gene_expression	6	Theme	_	_
 12	,	_	_	,	O	-1	none	_	_
 13	with	_	_	IN	O	-1	none	_	_
 14	subsequent	_	_	JJ	O	-1	none	_	_
-15	interaction	_	_	NN	Binding	0	root	_	_
+15	interaction	_	_	NN	Binding	-1	none	_	_
 16	leading	_	_	VBG	O	-1	none	_	_
 17	to	_	_	TO	O	-1	none	_	_
 18	cell	_	_	NN	O	-1	none	_	_
 19	death	_	_	NN	O	-1	none	_	_
 20	.	_	_	.	O	-1	none	_	_
 
-1	Overexpression	_	_	NN	Positive_regulation	0	root	_	_
+1	Overexpression	_	_	NN	Gene_expression	1	Theme	_	_
 2	of	_	_	IN	O	-1	none	_	_
 3	Bcl-2	_	_	NN	Protein	1	Theme	_	_
 4	in	_	_	IN	O	-1	none	_	_
@@ -24253,7 +24253,7 @@
 13	blasts	_	_	NNS	O	-1	none	_	_
 14	were	_	_	VBD	O	-1	none	_	_
 15	transiently	_	_	RB	O	-1	none	_	_
-16	transfected	_	_	VBN	Positive_regulation	0	root	_	_
+16	transfected	_	_	VBN	Gene_expression	16	Theme	_	_
 17	with	_	_	IN	O	-1	none	_	_
 18	Bcl-2	_	_	NN	Protein	16	Theme	_	_
 19	and	_	_	CC	O	-1	none	_	_
@@ -25204,7 +25204,7 @@
 2	,	_	_	,	O	-1	none	_	_
 3	in	_	_	IN	O	-1	none	_	_
 4	CIITA	_	_	NN	Protein	5	Theme	_	_
-5	transfected	_	_	VBN	Positive_regulation	0	root	_	_
+5	transfected	_	_	VBN	Gene_expression	5	Theme	_	_
 6	cell	_	_	NN	O	-1	none	_	_
 7	hybrids	_	_	NNS	O	-1	none	_	_
 8	,	_	_	,	O	-1	none	_	_
@@ -25230,21 +25230,21 @@
 7	lack	_	_	NN	Negative_regulation	5	Theme	_	_
 8	of	_	_	IN	O	-1	none	_	_
 9	HLA-DQ	_	_	NN	Protein	10	multitoken	_	_
-10	alpha	_	_	NN	Protein	20	Theme	_	_
+10	alpha	_	_	NN	Protein	14	Theme	_	_
 11	or	_	_	CC	O	-1	none	_	_
 12	-DQ	_	_	NN	Protein	13	multitoken	_	_
-13	beta	_	_	NN	Protein	20	Theme	_	_
-14	transcription	_	_	NN	Transcription	30	Theme	_	_
+13	beta	_	_	NN	Protein	14	Theme	_	_
+14	transcription	_	_	NN	Transcription	7	Theme	_	_
 15	,	_	_	,	O	-1	none	_	_
 16	because	_	_	IN	O	-1	none	_	_
 17	both	_	_	DT	O	-1	none	_	_
 18	transcripts	_	_	NNS	O	-1	none	_	_
 19	were	_	_	VBD	O	-1	none	_	_
-20	present	_	_	JJ	Gene_expression	0	root	_	_
+20	present	_	_	JJ	Gene_expression	-1	none	_	_
 21	in	_	_	IN	O	-1	none	_	_
 22	the	_	_	DT	O	-1	none	_	_
 23	CIITA	_	_	NN	Protein	24	Theme	_	_
-24	transfected	_	_	VBN	Positive_regulation	30	Cause	_	_
+24	transfected	_	_	VBN	Gene_expression	24	Theme	_	_
 25	hybrids	_	_	NNS	O	-1	none	_	_
 26	,	_	_	,	O	-1	none	_	_
 27	although	_	_	IN	O	-1	none	_	_
@@ -26274,29 +26274,29 @@
 9	reveals	_	_	VBZ	O	-1	none	_	_
 10	differences	_	_	NNS	O	-1	none	_	_
 11	in	_	_	IN	O	-1	none	_	_
-12	expression	_	_	NN	Gene_expression	-1	none	_	_
+12	expression	_	_	NN	Gene_expression	0	root	_	_
 13	of	_	_	IN	O	-1	none	_	_
 14	TNF	_	_	NN	Protein	16	multitoken	_	_
 15	receptors	_	_	NNS	Protein	16	multitoken	_	_
-16	1	_	_	CD	Protein	43	Cause	_	_
+16	1	_	_	CD	Protein	12	Theme	_	_
 17	and	_	_	CC	O	-1	none	_	_
-18	2	_	_	CD	Protein	43	Cause	_	_
+18	2	_	_	CD	Protein	12	Theme	_	_
 19	;	_	_	:	O	-1	none	_	_
 20	PKC	_	_	NN	Protein	22	multitoken	_	_
 21	isoforms	_	_	NNS	Protein	22	multitoken	_	_
-22	alpha	_	_	NN	Protein	43	Cause	_	_
+22	alpha	_	_	NN	Protein	12	Theme	_	_
 23	,	_	_	,	O	-1	none	_	_
 24	beta	_	_	NN	Protein	25	multitoken	_	_
-25	I	_	_	CD	Protein	43	Cause	_	_
+25	I	_	_	CD	Protein	12	Theme	_	_
 26	,	_	_	,	O	-1	none	_	_
 27	beta	_	_	NN	Protein	28	multitoken	_	_
-28	II	_	_	CD	Protein	43	Cause	_	_
+28	II	_	_	CD	Protein	12	Theme	_	_
 29	,	_	_	,	O	-1	none	_	_
 30	and	_	_	CC	O	-1	none	_	_
-31	mu	_	_	NN	Protein	43	Cause	_	_
+31	mu	_	_	NN	Protein	12	Theme	_	_
 32	;	_	_	:	O	-1	none	_	_
 33	and	_	_	CC	O	-1	none	_	_
-34	RelB	_	_	NN	Protein	43	Cause	_	_
+34	RelB	_	_	NN	Protein	12	Theme	_	_
 35	,	_	_	,	O	-1	none	_	_
 36	suggesting	_	_	VBG	O	-1	none	_	_
 37	that	_	_	IN	O	-1	none	_	_
@@ -26305,7 +26305,7 @@
 40	and	_	_	CC	O	-1	none	_	_
 41	pathways	_	_	NNS	O	-1	none	_	_
 42	are	_	_	VBP	O	-1	none	_	_
-43	important	_	_	JJ	Positive_regulation	0	root	_	_
+43	important	_	_	JJ	Positive_regulation	-1	none	_	_
 44	for	_	_	IN	O	-1	none	_	_
 45	DC	_	_	NN	O	-1	none	_	_
 46	differentiation	_	_	NN	O	-1	none	_	_
@@ -26513,14 +26513,14 @@
 2	,	_	_	,	O	-1	none	_	_
 3	B	_	_	NN	O	-1	none	_	_
 4	cells	_	_	NNS	O	-1	none	_	_
-5	transfected	_	_	VBN	Positive_regulation	-1	none	_	_
+5	transfected	_	_	VBN	Gene_expression	5	Theme	_	_
 6	with	_	_	IN	O	-1	none	_	_
 7	a	_	_	DT	O	-1	none	_	_
 8	chimeric	_	_	JJ	Protein	12	multitoken	_	_
 9	CD8alpha	_	_	NN	Protein	12	multitoken	_	_
 10	and	_	_	CC	Protein	12	multitoken	_	_
 11	IL-4Ralpha	_	_	NN	Protein	12	multitoken	_	_
-12	receptor	_	_	NN	Protein	23	Theme	_	_
+12	receptor	_	_	NN	Protein	5	Theme	_	_
 13	,	_	_	,	O	-1	none	_	_
 14	which	_	_	WDT	O	-1	none	_	_
 15	is	_	_	VBZ	O	-1	none	_	_
@@ -26833,7 +26833,7 @@
 1	In	_	_	IN	O	-1	none	_	_
 2	contrast	_	_	NN	O	-1	none	_	_
 3	,	_	_	,	O	-1	none	_	_
-4	p21ras	_	_	NN	Protein	21	Cause	_	_
+4	p21ras	_	_	NN	Protein	9	Cause	_	_
 5	signals	_	_	NNS	O	-1	none	_	_
 6	are	_	_	VBP	O	-1	none	_	_
 7	unable	_	_	JJ	O	-1	none	_	_
@@ -27075,11 +27075,11 @@
 18	.	_	_	.	O	-1	none	_	_
 
 1	Unlike	_	_	IN	O	-1	none	_	_
-2	TNFR1	_	_	NN	Protein	17	Theme	_	_
+2	TNFR1	_	_	NN	Protein	6	Theme	_	_
 3	,	_	_	,	O	-1	none	_	_
-4	LMP1	_	_	NN	Protein	17	Theme	_	_
+4	LMP1	_	_	NN	Protein	6	Theme	_	_
 5	can	_	_	MD	O	-1	none	_	_
-6	interact	_	_	VB	Binding	-1	none	_	_
+6	interact	_	_	VB	Binding	0	root	_	_
 7	directly	_	_	RB	O	-1	none	_	_
 8	with	_	_	IN	O	-1	none	_	_
 9	receptor	_	_	NN	O	-1	none	_	_
@@ -27090,7 +27090,7 @@
 14	)	_	_	-RRB-	O	-1	none	_	_
 15	and	_	_	CC	O	-1	none	_	_
 16	stably	_	_	RB	O	-1	none	_	_
-17	associates	_	_	VBZ	Binding	0	root	_	_
+17	associates	_	_	VBZ	Binding	-1	none	_	_
 18	with	_	_	IN	O	-1	none	_	_
 19	RIP	_	_	NN	O	-1	none	_	_
 20	in	_	_	IN	O	-1	none	_	_
@@ -27567,13 +27567,13 @@
 1	The	_	_	DT	O	-1	none	_	_
 2	location	_	_	NN	Localization	0	root	_	_
 3	of	_	_	IN	O	-1	none	_	_
-4	Sp140	_	_	NN	Protein	10	Theme	_	_
+4	Sp140	_	_	NN	Protein	2	Theme	_	_
 5	in	_	_	IN	O	-1	none	_	_
 6	the	_	_	DT	O	-1	none	_	_
 7	NB	_	_	NN	Entity	2	AtLoc	_	_
 8	,	_	_	,	O	-1	none	_	_
 9	and	_	_	CC	O	-1	none	_	_
-10	expression	_	_	NN	Gene_expression	0	root	_	_
+10	expression	_	_	NN	Gene_expression	-1	none	_	_
 11	of	_	_	IN	O	-1	none	_	_
 12	this	_	_	DT	O	-1	none	_	_
 13	gene	_	_	NN	O	-1	none	_	_
@@ -27811,8 +27811,8 @@
 37	NF-kappaB	_	_	NN	O	-1	none	_	_
 38	.	_	_	.	O	-1	none	_	_
 
-1	Transcriptional	_	_	JJ	Regulation	2	multitoken	_	_
-2	regulation	_	_	NN	Regulation	0	root	_	_
+1	Transcriptional	_	_	JJ	Transcription	2	multitoken	_	_
+2	regulation	_	_	NN	Transcription	2	Theme	_	_
 3	of	_	_	IN	O	-1	none	_	_
 4	the	_	_	DT	O	-1	none	_	_
 5	interleukin-2	_	_	NN	Protein	2	Theme	_	_
@@ -28879,7 +28879,7 @@
 85	of	_	_	IN	O	-1	none	_	_
 86	the	_	_	DT	O	-1	none	_	_
 87	histone	_	_	NN	Protein	88	multitoken	_	_
-88	h5	_	_	NN	Protein	93	Theme	_	_
+88	h5	_	_	NN	Protein	76	Theme	_	_
 89	gene	_	_	NN	O	-1	none	_	_
 90	,	_	_	,	O	-1	none	_	_
 91	repressing	_	_	VBG	Negative_regulation	0	root	_	_
@@ -29400,17 +29400,17 @@
 9	by	_	_	IN	O	-1	none	_	_
 10	an	_	_	DT	O	-1	none	_	_
 11	initial	_	_	JJ	O	-1	none	_	_
-12	depletion	_	_	NN	Negative_regulation	-1	none	_	_
+12	depletion	_	_	NN	Negative_regulation	0	root	_	_
 13	of	_	_	IN	O	-1	none	_	_
 14	I	_	_	NN	Protein	16	multitoken	_	_
 15	kappa	_	_	NN	Protein	16	multitoken	_	_
-16	B-alpha	_	_	NN	Protein	22	Theme	_	_
+16	B-alpha	_	_	NN	Protein	12	Theme	_	_
 17	followed	_	_	VBN	O	-1	none	_	_
 18	by	_	_	IN	O	-1	none	_	_
 19	a	_	_	DT	O	-1	none	_	_
 20	slight	_	_	JJ	O	-1	none	_	_
 21	transient	_	_	JJ	O	-1	none	_	_
-22	increase	_	_	NN	Positive_regulation	0	root	_	_
+22	increase	_	_	NN	Positive_regulation	-1	none	_	_
 23	in	_	_	IN	O	-1	none	_	_
 24	the	_	_	DT	O	-1	none	_	_
 25	level	_	_	NN	O	-1	none	_	_
@@ -29553,7 +29553,7 @@
 5	HNF-1	_	_	NN	Protein	6	multitoken	_	_
 6	alpha	_	_	NN	Protein	0	root	_	_
 7	(	_	_	-LRB-	O	-1	none	_	_
-8	DCoH	_	_	NN	Protein	30	Cause	_	_
+8	DCoH	_	_	NN	Protein	17	Theme	_	_
 9	)	_	_	-RRB-	O	-1	none	_	_
 10	was	_	_	VBD	O	-1	none	_	_
 11	identified	_	_	VBN	O	-1	none	_	_
@@ -29562,7 +29562,7 @@
 14	a	_	_	DT	O	-1	none	_	_
 15	restricted	_	_	JJ	O	-1	none	_	_
 16	tissue	_	_	NN	O	-1	none	_	_
-17	distribution	_	_	NN	Localization	-1	none	_	_
+17	distribution	_	_	NN	Localization	0	root	_	_
 18	and	_	_	CC	O	-1	none	_	_
 19	did	_	_	VBD	O	-1	none	_	_
 20	not	_	_	RB	O	-1	none	_	_
@@ -29695,9 +29695,9 @@
 51	.	_	_	.	O	-1	none	_	_
 
 1	The	_	_	DT	O	-1	none	_	_
-2	KBF1	_	_	NN	Protein	14	Theme	_	_
+2	KBF1	_	_	NN	Protein	9	Theme	_	_
 3	and	_	_	CC	O	-1	none	_	_
-4	p50	_	_	NN	Protein	14	Theme	_	_
+4	p50	_	_	NN	Protein	9	Theme	_	_
 5	factor	_	_	NN	O	-1	none	_	_
 6	binds	_	_	VBZ	Binding	9	multitoken	_	_
 7	as	_	_	IN	Binding	9	multitoken	_	_
@@ -29750,9 +29750,9 @@
 1	A	_	_	DT	O	-1	none	_	_
 2	mutant	_	_	NN	O	-1	none	_	_
 3	of	_	_	IN	O	-1	none	_	_
-4	KBF1	_	_	NN	Protein	23	Theme	_	_
+4	KBF1	_	_	NN	Protein	14	Theme	_	_
 5	and	_	_	CC	O	-1	none	_	_
-6	p50	_	_	NN	Protein	23	Theme	_	_
+6	p50	_	_	NN	Protein	14	Theme	_	_
 7	(	_	_	-LRB-	O	-1	none	_	_
 8	delta	_	_	NN	O	-1	none	_	_
 9	SP	_	_	NN	O	-1	none	_	_
@@ -29760,7 +29760,7 @@
 11	,	_	_	,	O	-1	none	_	_
 12	unable	_	_	JJ	O	-1	none	_	_
 13	to	_	_	TO	O	-1	none	_	_
-14	bind	_	_	VB	Binding	-1	none	_	_
+14	bind	_	_	VB	Binding	0	root	_	_
 15	to	_	_	TO	O	-1	none	_	_
 16	DNA	_	_	NN	O	-1	none	_	_
 17	but	_	_	CC	O	-1	none	_	_
@@ -29769,7 +29769,7 @@
 20	form	_	_	VB	Binding	21	multitoken	_	_
 21	homo-	_	_	JJ	Binding	0	root	_	_
 22	or	_	_	CC	O	-1	none	_	_
-23	heterodimers	_	_	NNS	Binding	0	root	_	_
+23	heterodimers	_	_	NNS	Binding	-1	none	_	_
 24	,	_	_	,	O	-1	none	_	_
 25	has	_	_	VBZ	O	-1	none	_	_
 26	been	_	_	VBN	O	-1	none	_	_
@@ -30664,8 +30664,8 @@
 11	infected	_	_	JJ	O	-1	none	_	_
 12	thymocytes	_	_	NNS	O	-1	none	_	_
 13	was	_	_	VBD	O	-1	none	_	_
-14	transcribed	_	_	VBN	Transcription	21	Theme	_	_
-15	from	_	_	IN	Positive_regulation	-1	none	_	_
+14	transcribed	_	_	VBN	Transcription	15	Theme	_	_
+15	from	_	_	IN	Positive_regulation	0	root	_	_
 16	the	_	_	DT	O	-1	none	_	_
 17	Fp	_	_	NN	O	-1	none	_	_
 18	promoter	_	_	NN	O	-1	none	_	_
@@ -31269,9 +31269,9 @@
 8	differential	_	_	JJ	O	-1	none	_	_
 9	patterns	_	_	NNS	O	-1	none	_	_
 10	of	_	_	IN	O	-1	none	_	_
-11	IkappaB-alpha	_	_	NN	Protein	17	Theme	_	_
+11	IkappaB-alpha	_	_	NN	Protein	14	Theme	_	_
 12	and	_	_	CC	O	-1	none	_	_
-13	IkappaB-epsilon	_	_	NN	Protein	17	Theme	_	_
+13	IkappaB-epsilon	_	_	NN	Protein	14	Theme	_	_
 14	disappearance	_	_	NN	Binding	6	Theme	_	_
 15	from	_	_	IN	O	-1	none	_	_
 16	and	_	_	CC	O	-1	none	_	_
@@ -31520,7 +31520,7 @@
 7	biallelic	_	_	JJ	Gene_expression	8	multitoken	_	_
 8	expression	_	_	NN	Gene_expression	0	root	_	_
 9	of	_	_	IN	O	-1	none	_	_
-10	WT1	_	_	NN	Protein	25	Theme	_	_
+10	WT1	_	_	NN	Protein	8	Theme	_	_
 11	in	_	_	IN	O	-1	none	_	_
 12	fibroblasts	_	_	NNS	O	-1	none	_	_
 13	and	_	_	CC	O	-1	none	_	_
@@ -31705,7 +31705,7 @@
 18	inflammatory	_	_	JJ	Protein	19	multitoken	_	_
 19	protein-2	_	_	NN	Protein	0	root	_	_
 20	(	_	_	-LRB-	O	-1	none	_	_
-21	MIP-2	_	_	NN	Protein	38	Theme	_	_
+21	MIP-2	_	_	NN	Protein	8	Theme	_	_
 22	)	_	_	-RRB-	O	-1	none	_	_
 23	and	_	_	CC	O	-1	none	_	_
 24	cytokine	_	_	NN	O	-1	none	_	_
@@ -32642,7 +32642,7 @@
 10	co-cultures	_	_	NNS	O	-1	none	_	_
 11	.	_	_	.	O	-1	none	_	_
 
-1	Co-transfection	_	_	NN	Positive_regulation	0	root	_	_
+1	Co-transfection	_	_	NN	Gene_expression	1	Theme	_	_
 2	with	_	_	IN	O	-1	none	_	_
 3	dominant	_	_	JJ	O	-1	none	_	_
 4	negative	_	_	JJ	O	-1	none	_	_
@@ -34079,7 +34079,7 @@
 15	linked	_	_	VBN	Binding	26	Cause	_	_
 16	with	_	_	IN	O	-1	none	_	_
 17	the	_	_	DT	O	-1	none	_	_
-18	hMR	_	_	NN	Protein	27	Theme	_	_
+18	hMR	_	_	NN	Protein	15	Theme	_	_
 19	by	_	_	IN	O	-1	none	_	_
 20	dimethylpimelimidate	_	_	NN	O	-1	none	_	_
 21	,	_	_	,	O	-1	none	_	_
@@ -34311,7 +34311,7 @@
 3	the	_	_	DT	O	-1	none	_	_
 4	activity	_	_	NN	O	-1	none	_	_
 5	of	_	_	IN	O	-1	none	_	_
-6	c-Myb	_	_	NN	Protein	17	Cause	_	_
+6	c-Myb	_	_	NN	Protein	2	Theme	_	_
 7	and	_	_	CC	O	-1	none	_	_
 8	Ets	_	_	NN	O	-1	none	_	_
 9	individually	_	_	RB	O	-1	none	_	_
@@ -34523,8 +34523,8 @@
 86	.	_	_	.	O	-1	none	_	_
 
 1	TNF-alpha	_	_	NN	Protein	2	Theme	_	_
-2	release	_	_	NN	Localization	17	Theme	_	_
-3	peaked	_	_	VBD	Positive_regulation	-1	none	_	_
+2	release	_	_	NN	Localization	3	Theme	_	_
+3	peaked	_	_	VBD	Positive_regulation	0	root	_	_
 4	at	_	_	IN	O	-1	none	_	_
 5	24	_	_	CD	O	-1	none	_	_
 6	h	_	_	NN	O	-1	none	_	_
@@ -35251,7 +35251,7 @@
 4	specific	_	_	JJ	O	-1	none	_	_
 5	increase	_	_	NN	Positive_regulation	0	root	_	_
 6	in	_	_	IN	O	-1	none	_	_
-7	LAL	_	_	NN	Protein	21	Theme	_	_
+7	LAL	_	_	NN	Protein	8	Theme	_	_
 8	expression	_	_	NN	Gene_expression	5	Theme	_	_
 9	is	_	_	VBZ	O	-1	none	_	_
 10	further	_	_	RB	O	-1	none	_	_
@@ -35389,7 +35389,7 @@
 22	PMA	_	_	NN	O	-1	none	_	_
 23	enhanced	_	_	VBD	Positive_regulation	13	Theme	_	_
 24	LAL	_	_	NN	Protein	25	Theme	_	_
-25	expression	_	_	NN	Gene_expression	23	Theme	_	_
+25	expression	_	_	NN	Gene_expression	13	Theme	_	_
 26	.	_	_	.	O	-1	none	_	_
 
 1	Our	_	_	PRP$	O	-1	none	_	_
@@ -35824,14 +35824,14 @@
 18	.	_	_	.	O	-1	none	_	_
 
 1	The	_	_	DT	O	-1	none	_	_
-2	expression	_	_	NN	Gene_expression	-1	none	_	_
+2	expression	_	_	NN	Gene_expression	0	root	_	_
 3	and	_	_	CC	O	-1	none	_	_
-4	activity	_	_	NN	Positive_regulation	0	root	_	_
+4	activity	_	_	NN	Positive_regulation	-1	none	_	_
 5	of	_	_	IN	O	-1	none	_	_
 6	NF-kappa	_	_	NN	O	-1	none	_	_
 7	B	_	_	NN	O	-1	none	_	_
 8	and	_	_	CC	O	-1	none	_	_
-9	Sp1	_	_	NN	Protein	4	Theme	_	_
+9	Sp1	_	_	NN	Protein	2	Theme	_	_
 10	were	_	_	VBD	O	-1	none	_	_
 11	,	_	_	,	O	-1	none	_	_
 12	therefore	_	_	RB	O	-1	none	_	_
