@@ -168,8 +168,8 @@ if __name__ == '__main__':
         print(f'reading {name}')
         txt = read(root + '.txt')
         a1 = read(root + '.a1')
-        a2 = read(root + '.a2')
-        annotations = f'{a1}\n{a2}'
+        # a2 = read(root + '.a2')
+        annotations = f'{a1}\n'
         sentences += brat_to_conllx(txt, annotations)
 
     print('---')
