@@ -393,7 +393,7 @@ class ArcHybridParser:
             # select transition
             left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.ev_relations))
             right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.ev_relations))
-            trigger_score, trigger = max(zip(tg_scores[1:], self.i2tg))
+            trigger_score, trigger = max(zip(tg_scores[2:], self.i2tg)) # 0=None 1=O
             # collect all legal transitions
             transitions = []
             if state.is_legal('shift'):

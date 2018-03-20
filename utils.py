@@ -206,6 +206,10 @@ class ConllEntry:
         self.parent_id = self.head
         self.relation = self.deprel
         self.brat_label = self.feats
+        # predictions
+        self.pred_parent_id = None
+        self.pred_relation = None
+        self.pred_feats = None
 
     def __repr__(self):
         return '<ConllEntry: %s>' % self.form
@@ -218,8 +222,11 @@ class ConllEntry:
             self.cpostag,
             self.postag,
             self.feats,
+            # self.pred_feats,
             self.head,
+            # self.pred_parent_id,
             self.deprel,
+            # self.pred_relation,
             self.phead,
             self.pdeprel,
         ]

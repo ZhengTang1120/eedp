@@ -141,6 +141,7 @@ class ArcHybridWithDrop(ArcHybrid):
         if transition == 'drop':
             b = self.buffer.pop(0)
             if trigger:
+                # if b.feats is a protein, then we can overwrite it because it is given to us
                 b.pred_feats = trigger if b.feats!="Protein" else "Protein"
             b.pred_parent_id = -1
             b.pred_relation = 'none'
