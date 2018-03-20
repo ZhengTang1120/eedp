@@ -282,7 +282,7 @@ class ArcHybridParser:
                     if state.is_legal('shift'):
                         ix = state.t2i['shift']
                         if triggers:
-                            for j, tg in enumerate(triggers, start=1):
+                            for j, tg in enumerate(triggers[1:], start=2):
                                 if (hasattr(state.buffer[0], 'is_parent') and state.buffer[0].is_parent and j == 1):
                                     continue
                                 t = Transition('shift', None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
@@ -393,7 +393,7 @@ class ArcHybridParser:
             # select transition
             left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.ev_relations))
             right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.ev_relations))
-            trigger_score, trigger = max(zip(tg_scores[1:], self.i2tg))
+            trigger_score, trigger = max(zip(tg_scores[2:], self.i2tg))
             # collect all legal transitions
             transitions = []
             if state.is_legal('shift'):
