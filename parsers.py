@@ -315,6 +315,8 @@ class ArcHybridParser:
                         if triggers:
                             t = Transition('drop', None, "O", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[1], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
                             legal_transitions.append(t)
+                            t = Transition('drop', None, "Protein", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[4], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[4])
+                            legal_transitions.append(t)
                         else:
                             t = Transition('drop', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
                             legal_transitions.append(t)
@@ -407,6 +409,8 @@ class ArcHybridParser:
                 transitions.append(t)
             if state.is_legal('drop'):
                 t = ('drop', None, "O", op_scores[state.t2i['drop']] + lbl_scores[0] + tg_scores[1])
+                transitions.append(t)
+                t = ('drop', None, "Protein", op_scores[state.t2i['drop']] + lbl_scores[0] + tg_scores[4])
                 transitions.append(t)
 
             # select best legal transition
