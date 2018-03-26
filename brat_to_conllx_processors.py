@@ -24,7 +24,7 @@ def brat_to_conllx(text, annotations):
     """
     global total_sentences, skipped_sentences
     root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel='rroot')
-    annotations = list(parse_annotations(annotations))
+    annotations = parse_annotations(annotations)
     skipped = 0
     doc = API.bionlp.annotate(text)
     for words, starts, ends, tags in get_token_spans(doc):
@@ -36,60 +36,65 @@ def brat_to_conllx(text, annotations):
                 label = None if tbm is None else tbm.label
                 if label is None:
                     label = 'O'
-                rel, head = get_relhead(annotations, starts, ends, tbm, i)
-                entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label, head=head, deprel=rel)
+                rels = list()
+                heads = list()
+                for rel, head, hlabel in get_relhead(annotations, starts, ends, tbm, i):
+                    rels.append(rel)
+                    heads.append(head)
+                entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label[0], head=heads, deprel=rels)
                 conllx.append(entry)
         except Exception as e:
             # get_mention_head() searches for the token's end position
             # in the `ends` list that corresponds to the sentence's tokens,
             # and throws an exception if the provided end does not correspond to any token
-            print('ERROR: tokenization does not align')
-            print(e)
-            print(words)
-            print(ends)
+            # print('ERROR: tokenization does not align')
+            # print(e)
+            # print(words)
+            # print(ends)
             skipped_sentences += 1
+            print (e)
             yield [ConllEntry(id=1, form='*skipped*', postag='*skipped*', head=-1, deprel='skipped', feats='O')]
             continue
-        yield make_projective(conllx)
+        yield conllx
 
-def make_projective(entries):
-    num_dependents = defaultdict(int)
-    for e in entries:
-        num_dependents[e.parent_id] += 1
-    for e in entries:
-        if e.parent_id == 0 and num_dependents[e.id] == 0:
-            e.parent_id = e.head = -1
-            e.relation = e.deprel = 'none'
-            # e.brat_label = e.feats = 'O'
-    return entries
 
 def get_tbm(annotations, start, end):
+    al = list()
     """returns the corresponding textbound mention"""
     for a in annotations:
         if a.id.startswith('T') and a.start < end and start < a.end:
-            return a
+            al.append(a)
+    if len(al) > 1:
+        print(al)
+    if len(al) > 0:
+        return al[-1]
+    else:
+        return None
 
 def get_mention_head(annotations, ends, mention_id):
     """returns the head token for the given mention id"""
     for a in annotations:
         if a.id == mention_id:
             try:
-                i = ends.index(a.end)
-                return i + 1
+                i = None
+                for j in range(len(ends)):
+                    if ends[j] >= a.end:
+                        i = j
+                        break
+                assert i is not None
+                return (i + 1, a.label)
             except ValueError:
                 raise Exception(a)
-            # i = ends.index(a.end)
-            # return i + 1
 
 def get_relhead(annotations, starts, ends, tbm, tok):
     """returns the correct relation and head for the given textbound mention"""
     # it the token does not belong to a textbound mention then it should be dropped
     if tbm is None:
-        return 'none', -1
+        return [('none', -1, None)]
     # if mention is multitoken, all tokens should point to the mention head
     if tbm.end != ends[tok]:
-        head = get_mention_head(annotations, ends, tbm.id)
-        return 'multitoken', head
+        head, hlabel = get_mention_head(annotations, ends, tbm.id)
+        return [('multitoken', head, None)]
     # if the mention is a trigger, then use the event id
     mention_id = tbm.id
     for a in annotations:
@@ -103,14 +108,15 @@ def get_relhead(annotations, starts, ends, tbm, tok):
                 for arg in args:
                     if arg == mention_id:
                         if checkTrigger(a.trigger, starts, ends, annotations):
-                            head = get_mention_head(annotations, ends, a.trigger)
+                            head, hlabel = get_mention_head(annotations, ends, a.trigger)
                             # collapse theme1, theme2, etc. into theme
                             rel = rel[:-1] if rel[-1].isdigit() else rel
-                            relheads.append((rel, head))
+                            if (rel, head, hlabel) not in relheads:
+                                relheads.append((rel, head, hlabel))
     if relheads:
-        return relheads[-1]
+        return relheads
     # if token has no parent then point it to the root
-    return 'root', 0
+    return [('root', 0, None)]
 
 def checkTrigger(trigger, starts, ends, annotations):
     for a in annotations:
@@ -122,11 +128,16 @@ def checkTrigger(trigger, starts, ends, annotations):
     return False
 
 def parse_annotations(annotations):
+    ann_dict = dict()
+    res = list()
     for line in annotations.splitlines():
         if line.startswith('T'):
             [id, data, text] = line.split('\t')
             [label, start, end] = data.split(' ')
-            yield TextboundMention(id, label, int(start), int(end), text)
+            if start+end not in ann_dict:
+                ann_dict[start+end] = TextboundMention(id, [label], int(start), int(end), text)
+            else:
+                ann_dict[start+end].label.append(label)
         elif line.startswith('E'):
             [id, data] = line.split('\t')
             [label_trigger, *args] = data.split(' ')
@@ -136,7 +147,9 @@ def parse_annotations(annotations):
                 if a.strip() != '':
                     [name, arg] = a.split(':')
                     arguments[name].append(arg)
-            yield EventMention(id, label, trigger, dict(arguments))
+            res.append(EventMention(id, label, trigger, dict(arguments)))
+    res += ann_dict.values()
+    return res
 
 def get_token_spans(doc):
     """
