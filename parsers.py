@@ -330,8 +330,8 @@ class ArcHybridParser:
                             t = Transition('drop', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
                             legal_transitions.append(t)
 
-                    print('---')
-                    print('legal',legal_transitions)
+                    # print('---')
+                    # print('legal',legal_transitions)
 
                     # collect all correct transitions
                     correct_transitions = []
@@ -339,8 +339,8 @@ class ArcHybridParser:
                         if state.is_correct(t[0]):
                             relation = state.get_arc_label_for_transition(t[0])
                             label = state.get_token_label_for_transition(t[0])
-                            print (relation, label)
-                            print (t)
+                            # print (relation, label)
+                            # print (t)
                             if t[1] == relation and t[2] == label:
                                 correct_transitions.append(t)
                             # if t.op not in ['shift', 'drop']:
@@ -348,7 +348,7 @@ class ArcHybridParser:
                             # if t.op in ['shift', 'drop'] or t.label in state.stack[-1].relations:
                             #     correct_transitions.append(t)
 
-                    print('correct',correct_transitions)
+                    # print('correct',correct_transitions)
                     # print('sentence',sentence)
                     # print(state.stack)
                     # print(state.buffer)
