@@ -27,7 +27,7 @@ if __name__ == '__main__':
         if len(s) > 2:
             for e in s:
                 if e.id > 0:
-                    e.head = e.parent_id = e.pred_parent_id
-                    e.deprel = e.relation = e.pred_relation
+                    e.head = e.parent_ids = e.pred_parent_ids
+                    e.deprel = e.relations = e.pred_relations
                     e.feats = e.brat_label = e.pred_feats
     write_conllx(args.outfile, sentences)

@@ -21,8 +21,8 @@ class CustomTransitionSystem:
         for arc in self.arcs:
             if arc.head.id == a.id and arc.dependent.id == b.id:
                 c += 1
-            elif arc.head.id == b.id and arc.dependent.id == a.id:
-                c += 1
+            # elif arc.head.id == b.id and arc.dependent.id == a.id:
+            #     c += 1
         return c
 
     def is_legal(self, transition):
@@ -49,7 +49,9 @@ class CustomTransitionSystem:
                 return False
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            return self.count_arcs(s0, s1) == 0
+            if s1.id == 0 and len(self.stack) == 2 and len(self.buffer) == 0:
+                return True
+            return self.count_arcs(s1, s0) == 0
 
         elif transition == 'left_attach':
             # there must be at least two things in the stack
@@ -70,7 +72,7 @@ class CustomTransitionSystem:
                 return False
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            return self.count_arcs(s0, s1) == 0
+            return self.count_arcs(s1, s0) == 0
 
         elif transition == 'swap':
             # can't swap things that have already been swapped
@@ -250,10 +252,11 @@ class CustomTransitionSystem:
         elif transition == 'right_reduce':
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            arc = Arc(s1, s0, relation)
-            self.arcs.append(arc)
-            s0.pred_parent_ids.append(s1.id)
-            s0.pred_relations.append(relation)
+            if self.count_arcs(s1, s0) == 0:
+                arc = Arc(s1, s0, relation)
+                self.arcs.append(arc)
+                s0.pred_parent_ids.append(s1.id)
+                s0.pred_relations.append(relation)
             self.stack.pop()
 
         elif transition == 'left_attach':

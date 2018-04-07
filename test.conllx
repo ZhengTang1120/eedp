@@ -1,0 +1,15 @@
+1	IL-10	_	_	NNP	Protein	[0]	['root']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+2	is	_	_	VBZ	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+3	a	_	_	DT	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+4	potent	_	_	JJ	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+5	mediator	_	_	NN	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+6	of	_	_	IN	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+7	human	_	_	NN	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+8	B	_	_	NN	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+9	cell	_	_	NN	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+10	growth	_	_	NN	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+11	and	_	_	CC	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+12	plasma	_	_	NN	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+13	cell	_	_	NN	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+14	formation	_	_	NN	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
+15	.	_	_	.	O	[-1]	['none']	_	_	data/bionlp09_shared_task_development_data_rev1/8675228
