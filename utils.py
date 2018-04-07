@@ -64,7 +64,8 @@ def make_vocabularies3(events):
             for e in event:
                 char_count.update(c for c in e.norm)
             tag_count.update(e.postag for e in event)
-            relation_count.update(e.relation for e in event if e.relation != 'none')
+            for e in event:
+                relation_count.update(r for r in e.relations if r != 'none')
             entity_count.update(e.feats for e in event)
     special = ['*unk*', '*pad*']
     words = special + list(word_count.keys())
@@ -94,7 +95,8 @@ def make_vocabularies2(sentences, events):
             char_count.update(c for c in e.norm)
         char_count.update(c for c in e.norm for e in event)
         tag_count.update(e.postag for e in event)
-        ev_relation_count.update(e.relation for e in event if e.relation != 'none')
+        for e in event:
+            ev_relation_count.update(r for r in e.relations if r != 'none')
         entity_count.update(e.feats for e in event)
     special = ['*unk*', '*pad*']
     words = special + list(word_count.keys())
@@ -113,16 +115,13 @@ def gen_conllx(filename, non_proj=False):
     """
     read = 0
     dropped = 0
-    root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel='rroot', feats='O')
+    root = ConllEntry(id=0, form='*root*', postag='*root*', head=[], deprel=[], feats='O')
     with open(filename) as f:
         sentence = [root]
         for line in f:
             if line.isspace() and len(sentence) > 1:
-                if non_proj or is_projective(sentence):
-                    yield sentence
-                else:
-                    yield [ConllEntry(id=1, form='*dropped*', postag='*dropped*', head=-1, deprel='dropped', feats='O')]
-                    dropped += 1
+                sentence[0].doc_from = sentence[1].doc_from
+                yield sentence
                 read += 1
                 sentence = [root]
                 continue
@@ -131,56 +130,9 @@ def gen_conllx(filename, non_proj=False):
         # we may still have one sentence in memory
         # if the file doesn't end in an empty line
         if len(sentence) > 1:
-            if is_projective(sentence) or non_proj:
-                yield sentence
-            else:
-                dropped += 1
-                yield [ConllEntry(id=1, form='*dropped*', postag='*dropped*', head=-1, deprel='dropped', feats='O')]
+            yield sentence
             read += 1
     print(f'{read:,} sentences read.')
-    print(f'{dropped:,} non-projective sentences dropped.')
-    print(f'{read-dropped:,} sentences remaining.')
-
-
-
-def is_projective(sentence):
-    """returns true if the sentence is projective"""
-    roots = list(sentence)
-    # keep track of number of children that haven't been
-    # assigned to each entry yet
-    unassigned = {
-        entry.id: sum(1 for e in sentence if e.parent_id == entry.id)
-        for entry in sentence
-    }
-    # we need to find the parent of each word in the sentence
-    for _ in range(len(sentence)):
-        # only consider the forest roots
-        for i in range(len(roots)):
-            if roots[i].parent_id == -1 and unassigned[roots[i].id] == 0 and roots[i].id != 0:
-                del roots[i]
-                break
-    # we need to find the parent of each word in the sentence
-    for _ in range(len(sentence)):
-        # only consider the forest roots
-        for i in range(len(roots) - 1):
-            # attach entries if:
-            #   - they are parent-child
-            #   - they are next to each other
-            #   - the child has already been assigned all its children
-            if roots[i].parent_id == roots[i+1].id and unassigned[roots[i].id] == 0:
-                unassigned[roots[i+1].id] -= 1
-                del roots[i]
-                break
-            if roots[i+1].parent_id == roots[i].id and unassigned[roots[i+1].id] == 0:
-                unassigned[roots[i].id] -= 1
-                del roots[i+1]
-                break
-        if len(roots) > 1 and roots[-1].parent_id == -1:
-            del roots[-1]
-    # if more than one root remains then it is not projective
-    return len(roots) == 1
-
-
 
 class ConllEntry:
     """
@@ -190,7 +142,7 @@ class ConllEntry:
 
     def __init__(self, id=None, form=None, lemma=None, cpostag=None,
                  postag=None, feats=None, head=None, deprel=None,
-                 phead=None, pdeprel=None):
+                 phead=None, pdeprel=None, doc_from=None):
         self.id = id
         self.form = form
         self.norm = normalize(form)
@@ -202,10 +154,13 @@ class ConllEntry:
         self.deprel = deprel
         self.phead = phead
         self.pdeprel = pdeprel
+        self.doc_from = doc_from
         # aliases
-        self.parent_id = self.head
-        self.relation = self.deprel
+        self.parent_ids = self.head
+        self.relations = self.deprel
         self.brat_label = self.feats
+        self.pred_parent_ids = []
+        self.pred_relations = []
 
     def __repr__(self):
         return '<ConllEntry: %s>' % self.form
@@ -222,18 +177,18 @@ class ConllEntry:
             self.deprel,
             self.phead,
             self.pdeprel,
+            self.doc_from
         ]
         return '\t'.join('_' if f is None else str(f) for f in fields)
 
     @staticmethod
     def from_line(line):
-        [id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel] = line.strip().split('\t')
+        [id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel, doc_from] = line.strip().split('\t')
         id = int(id)
         lemma = lemma if lemma != '_' else None
         feats = feats if feats != '_' else None
-        head = int(head)
-        if head == -1:
-            feats = "O" if feats != "Protein" else "Protein"
+        head = eval(head)
         phead = int(phead) if phead != '_' else None
         pdeprel = pdeprel if pdeprel != '_' else None
-        return ConllEntry(id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel)
+        deprel = eval(deprel) if deprel != "skipped" else "skipped"
+        return ConllEntry(id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel, doc_from)
