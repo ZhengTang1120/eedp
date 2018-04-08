@@ -49,7 +49,7 @@ class CustomTransitionSystem:
                 return False
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            if s1.id == 0 and len(self.stack) == 2 and len(self.buffer) == 0:
+            if len(self.buffer) == 0:
                 return True
             return self.count_arcs(s1, s0) == 0
 

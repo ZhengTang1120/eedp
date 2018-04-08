@@ -76,19 +76,25 @@ class ArcHybridParser:
         # feature extractor
         self.bilstm = dy.BiRNNBuilder(
                 self.lstm_num_layers,
-                self.w_embed_size + self.t_embed_size + 2 * self.clstm_hidden_size + self.e_embed_size,
+                self.w_embed_size + self.t_embed_size + self.clstm_hidden_size + self.e_embed_size,
                 self.lstm_hidden_size,
                 self.model,
                 dy.VanillaLSTMBuilder,
         )
 
         # char encoder
-        self.cbilstm = dy.BiRNNBuilder(
+        # self.cbilstm = dy.BiRNNBuilder(
+        #         self.lstm_num_layers,
+        #         self.c_embed_size,
+        #         self.clstm_hidden_size,
+        #         self.model,
+        #         dy.VanillaLSTMBuilder,
+        # )
+        self.clstm = dy.LSTMBuilder(
                 self.lstm_num_layers,
                 self.c_embed_size,
                 self.clstm_hidden_size,
                 self.model,
-                dy.VanillaLSTMBuilder,
         )
         self.char_to_lstm      = self.model.add_parameters((self.clstm_hidden_size, self.c_embed_size))
         self.char_to_lstm_bias = self.model.add_parameters((self.clstm_hidden_size))
@@ -190,7 +196,7 @@ class ArcHybridParser:
                 c_id = self.c2i.get(c, self.c2i['*unk*'])
                 c_v = self.clookup[c_id]
                 c_seq.append(c_v)
-            c_vec = dy.concatenate([self.cbilstm.transduce(c_seq)[0], self.cbilstm.transduce(c_seq)[-1]])
+            c_vec = self.clstm.initial_state().transduce(c_seq)[-1]#dy.concatenate([self.cbilstm.transduce(c_seq)[0], self.cbilstm.transduce(c_seq)[-1]])
             t_id = self.t2i[entry.postag]
             e_id = self.e2i[entry.feats] if entry.feats == "Protein" else self.e2i["O"]
             # get word and tag embbedding in the corresponding entry
@@ -428,7 +434,7 @@ class ArcHybridParser:
             #     transitions.append(t)
             #     t = ('drop', None, "Protein", op_scores[state.t2i['drop']] + lbl_scores[0] + tg_scores[4])
             #     transitions.append(t)
-            # print('LEGAL:', list(state.all_legal()))
+            print('LEGAL:', list(state.all_legal()))
             for lt in state.all_legal():
                 ix = state.t2i[lt]
                 if lt == "shift":
@@ -448,13 +454,13 @@ class ArcHybridParser:
                 if lt == "swap":
                     t = (lt, None, None, op_scores[state.t2i[lt]] + lbl_scores[0] + tg_scores[0])
                     transitions.append(t)
-            # print('STACK:', state.stack)
-            # print('BUFFER:', state.buffer)
-            # print('ARCS:', state.arcs)
+            print('STACK:', state.stack)
+            print('BUFFER:', state.buffer)
+            print('ARCS:', state.arcs)
             # select best legal transition
             best_act, best_lbl, best_tg, best_socre = max(transitions, key=itemgetter(3))
-            # print (best_act)
-            # print ("----------------------------")
+            print (best_act)
+            print ("----------------------------")
             # perform transition
             state.perform_transition(best_act, best_lbl, best_tg)
         dy.renew_cg()
