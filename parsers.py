@@ -76,7 +76,7 @@ class ArcHybridParser:
         # feature extractor
         self.bilstm = dy.BiRNNBuilder(
                 self.lstm_num_layers,
-                self.w_embed_size + self.t_embed_size + self.clstm_hidden_size + self.e_embed_size,
+                self.w_embed_size + self.t_embed_size + 2 * self.clstm_hidden_size + self.e_embed_size,
                 self.lstm_hidden_size,
                 self.model,
                 dy.VanillaLSTMBuilder,
@@ -190,7 +190,7 @@ class ArcHybridParser:
                 c_id = self.c2i.get(c, self.c2i['*unk*'])
                 c_v = self.clookup[c_id]
                 c_seq.append(c_v)
-            c_vec = self.cbilstm.transduce(c_seq)[-1]
+            c_vec = dy.concatenate([self.cbilstm.transduce(c_seq)[0], self.cbilstm.transduce(c_seq)[-1]])
             t_id = self.t2i[entry.postag]
             e_id = self.e2i[entry.feats] if entry.feats == "Protein" else self.e2i["O"]
             # get word and tag embbedding in the corresponding entry

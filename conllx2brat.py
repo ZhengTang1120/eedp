@@ -49,30 +49,36 @@ def parse_event_tree(event_tree, entities, eid, sent_ann):
         return None
     # Group Binding Theme
     for head in event_tree:
-        if head.feats == "Binding":
-            temp = defaultdict(list)
-            for theme in event_tree[head]["Theme"]:
-                head_id = entities[head][-1]
-                token_id = entities[theme[0]][-1]
-                deprel = sent_ann.dependencies.shortest_path(head_id, token_id)[0][1] if sent_ann.dependencies.shortest_path(head_id, token_id) else None
-                temp[deprel].append(theme)
-            for i, key in enumerate(temp.keys(), start=1):
-                if i > 1:
-                    event_tree[head]["Theme"+str(i)] = list()
-                    for theme in temp[key]:
-                        theme[-1] = "Theme"+str(i)
-                        event_tree[head]["Theme"].remove(theme)
-                        event_tree[head]["Theme"+str(i)].append(theme)
+        try:
+            if head.feats == "Binding":
+                temp = defaultdict(list)
+                for theme in event_tree[head]["Theme"]:
+                    head_id = entities[head][-1]
+                    token_id = entities[theme[0]][-1]
+                    deprel = sent_ann.dependencies.shortest_path(head_id, token_id)[0][1] if sent_ann.dependencies.shortest_path(head_id, token_id) else None
+                    temp[deprel].append(theme)
+                for i, key in enumerate(temp.keys(), start=1):
+                    if i > 1:
+                        event_tree[head]["Theme"+str(i)] = list()
+                        for theme in temp[key]:
+                            theme[-1] = "Theme"+str(i)
+                            event_tree[head]["Theme"].remove(theme)
+                            event_tree[head]["Theme"+str(i)].append(theme)
+        except KeyError:
+            print ("Entity Not Found")
     # Parse Event Tree to Events
     events = dict()
     res = list()
     for head in event_tree:
-        for li in (list(itertools.product(*list(event_tree[head].values())))):
-            line = [head.feats, entities[head][0][0]]
-            for k in li:
-                line.append({k[1]:entities[k[0]][0][0]})
-            events[entities[head][0][0]+"|"+str(eid)] = ("E"+str(eid), line)
-            eid += 1
+        try:
+            for li in (list(itertools.product(*list(event_tree[head].values())))):
+                line = [head.feats, entities[head][0][0]]
+                for k in li:
+                    line.append({k[1]:entities[k[0]][0][0]})
+                events[entities[head][0][0]+"|"+str(eid)] = ("E"+str(eid), line)
+                eid += 1
+        except KeyError:
+            print ("Entity Not Found")
     # Map Event ID to Token ID
     for head in events:
         for t, tid in enumerate(events[head][1][2:], start=2):
@@ -95,12 +101,13 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument('datadir')
-    parser.add_argument('--conllx', default='test.conllx')
+    parser.add_argument('--conllx', default='brat.conllx')
     args = parser.parse_args()
     sentences = read_conllx(args.conllx, True)
     es = 0
     for fname in glob.glob(os.path.join(args.datadir, '*.a1')):
         root = os.path.splitext(fname)[0]
+        print (root)
         name = os.path.basename(root)
         
         txt = read(root + '.txt')
@@ -132,7 +139,6 @@ if __name__ == '__main__':
                             proteins[token] = ([tid],multitoken_start_id if multitoken_start_id != -1 else j-1 )
                         else:
                             print ("Protein Not Found")
-                            exit()
                         multitoken_start = -1
                         multitoken_start_id = -1
                         for k, th in enumerate(token.head):
