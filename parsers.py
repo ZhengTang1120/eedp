@@ -434,7 +434,7 @@ class ArcHybridParser:
             #     transitions.append(t)
             #     t = ('drop', None, "Protein", op_scores[state.t2i['drop']] + lbl_scores[0] + tg_scores[4])
             #     transitions.append(t)
-            print('LEGAL:', list(state.all_legal()))
+            # print('LEGAL:', list(state.all_legal()))
             for lt in state.all_legal():
                 ix = state.t2i[lt]
                 if lt == "shift":
@@ -454,13 +454,13 @@ class ArcHybridParser:
                 if lt == "swap":
                     t = (lt, None, None, op_scores[state.t2i[lt]] + lbl_scores[0] + tg_scores[0])
                     transitions.append(t)
-            print('STACK:', state.stack)
-            print('BUFFER:', state.buffer)
-            print('ARCS:', state.arcs)
+            # print('STACK:', state.stack)
+            # print('BUFFER:', state.buffer)
+            # print('ARCS:', state.arcs)
             # select best legal transition
             best_act, best_lbl, best_tg, best_socre = max(transitions, key=itemgetter(3))
-            print (best_act)
-            print ("----------------------------")
+            # print (best_act)
+            # print ("----------------------------")
             # perform transition
             state.perform_transition(best_act, best_lbl, best_tg)
         dy.renew_cg()
