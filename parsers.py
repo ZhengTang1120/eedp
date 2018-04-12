@@ -313,6 +313,14 @@ class ArcHybridParser:
                             if lt == "swap":
                                 t = Transition(lt, None, None, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[0])
                                 legal_transitions.append(t)
+                        # collect all correct transitions
+                        correct_transitions = []
+                        for t in legal_transitions:
+                            if state.is_correct(t[0]):
+                                relation = state.get_arc_label_for_transition(t[0])
+                                label = state.get_token_label_for_transition(t[0])
+                                if t[1] == relation and t[2] == label:
+                                    correct_transitions.append(t)
 
                     else:
                         if state.is_legal('shift'):
@@ -335,29 +343,20 @@ class ArcHybridParser:
                             ix = state.t2i['drop']
                             t = Transition('drop', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
                             legal_transitions.append(t)
+                        # collect all correct transitions
+                        correct_transitions = []
+                        for t in legal_transitions:
+                            if state.is_correct(t):
+                                if t.op in ['shift', 'drop'] or t.label in state.stack[-1].relation:
+                                    correct_transitions.append(t)
 
-                    # print('---')
-                    # print('legal',legal_transitions)
+                    print('---')
+                    print('legal',legal_transitions)
 
-                    # collect all correct transitions
-                    correct_transitions = []
-                    for t in legal_transitions:
-                        if state.is_correct(t[0]):
-                            relation = state.get_arc_label_for_transition(t[0])
-                            label = state.get_token_label_for_transition(t[0])
-                            # print (relation, label)
-                            # print (t)
-                            if t[1] == relation and t[2] == label:
-                                correct_transitions.append(t)
-                            # if t.op not in ['shift', 'drop']:
-                            #     print(t.label, state.stack[-1].relations)
-                            # if t.op in ['shift', 'drop'] or t.label in state.stack[-1].relations:
-                            #     correct_transitions.append(t)
-
-                    # print('correct',correct_transitions)
-                    # print('sentence',sentence)
-                    # print(state.stack)
-                    # print(state.buffer)
+                    print('correct',correct_transitions)
+                    print('sentence',sentence)
+                    print(state.stack)
+                    print(state.buffer)
                     # select transition
                     best_legal = max(legal_transitions, key=attrgetter('score'))
                     best_correct = max(correct_transitions, key=attrgetter('score'))

@@ -99,14 +99,14 @@ class CustomTransitionSystem:
 
     def is_correct(self, transition):
         if transition == 'left_attach':
-            if len(self.stack[-2].parent_ids) < 2:
+            if len(self.stack[-2].parent_id) < 2:
                 # don't use left_attach if s1 has less than two parents
                 return False
             elif self.is_legal('left_reduce') and self.cost('left_reduce') == 0:
                 # don't use left_attach if left_reduce is available
                 return False
         elif transition == 'right_attach':
-            if len(self.stack[-1].parent_ids) < 2:
+            if len(self.stack[-1].parent_id) < 2:
                 # don't use left_attach if s0 has less than two parents
                 return False
             elif self.is_legal('right_reduce') and self.cost('right_reduce') == 0:
@@ -135,21 +135,21 @@ class CustomTransitionSystem:
         if transition == 'shift':
             b = self.buffer[0]
             for s in self.sentence:
-                if b.id in s.parent_ids or (s.id == b.id and s.parent_ids != [-1]):
+                if b.id in s.parent_id or (s.id == b.id and s.parent_id != [-1]):
                     return 0
             return 1
 
         elif transition == 'left_reduce':
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            c = 0 if s0.id in s1.parent_ids else 1
+            c = 0 if s0.id in s1.parent_id else 1
             # count dependents of s1 that haven't been attached
             for s in self.sentence:
-                if s1.id in s.parent_ids:
+                if s1.id in s.parent_id:
                     if not any(a for a in self.arcs if a.head.id == s1.id and a.dependent.id == s.id):
                         c += 1
             # count parents of s1 that haven't been attached
-            for pid in s1.parent_ids:
+            for pid in s1.parent_id:
                 if pid != s0.id:
                     if not any(a for a in self.arcs if a.head.id == pid and a.dependent.id == s1.id):
                         c += 1
@@ -158,14 +158,14 @@ class CustomTransitionSystem:
         elif transition == 'right_reduce':
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            c = 0 if s1.id in s0.parent_ids else 1
+            c = 0 if s1.id in s0.parent_id else 1
             # count dependents of s0 that haven't been attached
             for s in self.sentence:
-                if s0.id in s.parent_ids:
+                if s0.id in s.parent_id:
                     if not any(a for a in self.arcs if a.head.id == s0.id and a.dependent.id == s.id):
                         c += 1
             # count parents of s0 that haven't been attached
-            for pid in s0.parent_ids:
+            for pid in s0.parent_id:
                 if pid != s1.id:
                     if not any(a for a in self.arcs if a.head.id == pid and a.dependent.id == s0.id):
                         c += 1
@@ -174,13 +174,13 @@ class CustomTransitionSystem:
         elif transition == 'left_attach':
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            c = 0 if s0.id in s1.parent_ids else 1
+            c = 0 if s0.id in s1.parent_id else 1
             return c
 
         elif transition == 'right_attach':
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            c = 0 if s1.id in s0.parent_ids else 1
+            c = 0 if s1.id in s0.parent_id else 1
             return c
 
         elif transition == 'swap':
@@ -188,9 +188,9 @@ class CustomTransitionSystem:
             s1 = self.stack[-2]
             sigma = self.stack[1:-2]
             for entry in sigma:
-                if s0.id in entry.parent_ids and not self.children_left(entry):
+                if s0.id in entry.parent_id and not self.children_left(entry):
                     return 0
-                elif entry.id in s0.parent_ids and not self.children_left(s0):
+                elif entry.id in s0.parent_id and not self.children_left(s0):
                     return 0
             return 1
 
@@ -199,15 +199,15 @@ class CustomTransitionSystem:
             c = 0
             b = self.buffer[0]
             for s in self.sentence:
-                if b.id in s.parent_ids or (s.id == b.id and s.parent_ids != [-1]):
+                if b.id in s.parent_id or (s.id == b.id and s.parent_id != [-1]):
                     c += 1
             return c
 
     def children_left(self, parent):
         for child in self.sentence[1:]:
-            if parent.id in child.parent_ids:
-                i = child.parent_ids.index(parent.id)
-                label = child.relations[i]
+            if parent.id in child.parent_id:
+                i = child.parent_id.index(parent.id)
+                label = child.relation[i]
                 arc = Arc(parent, child, label)
                 if arc not in self.arcs:
                     return True
@@ -217,13 +217,13 @@ class CustomTransitionSystem:
         if transition in ('left_reduce', 'left_attach'):
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            i = s1.parent_ids.index(s0.id)
-            return s1.relations[i]
+            i = s1.parent_id.index(s0.id)
+            return s1.relation[i]
         elif transition in ('right_reduce', 'right_attach'):
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            i = s0.parent_ids.index(s1.id)
-            return s0.relations[i]
+            i = s0.parent_id.index(s1.id)
+            return s0.relation[i]
 
     def get_token_label_for_transition(self, transition):
         if transition == 'drop':
@@ -245,8 +245,8 @@ class CustomTransitionSystem:
             s1 = self.stack[-2]
             arc = Arc(s0, s1, relation)
             self.arcs.append(arc)
-            s1.pred_parent_ids.append(s0.id)
-            s1.pred_relations.append(relation)
+            s1.pred_parent_id.append(s0.id)
+            s1.pred_relation.append(relation)
             self.stack.pop(-2)
 
         elif transition == 'right_reduce':
@@ -255,8 +255,8 @@ class CustomTransitionSystem:
             if self.count_arcs(s1, s0) == 0:
                 arc = Arc(s1, s0, relation)
                 self.arcs.append(arc)
-                s0.pred_parent_ids.append(s1.id)
-                s0.pred_relations.append(relation)
+                s0.pred_parent_id.append(s1.id)
+                s0.pred_relation.append(relation)
             self.stack.pop()
 
         elif transition == 'left_attach':
@@ -264,16 +264,16 @@ class CustomTransitionSystem:
             s1 = self.stack[-2]
             arc = Arc(s0, s1, relation)
             self.arcs.append(arc)
-            s1.pred_parent_ids.append(s0.id)
-            s1.pred_relations.append(relation)
+            s1.pred_parent_id.append(s0.id)
+            s1.pred_relation.append(relation)
 
         elif transition == 'right_attach':
             s0 = self.stack[-1]
             s1 = self.stack[-2]
             arc = Arc(s1, s0, relation)
             self.arcs.append(arc)
-            s0.pred_parent_ids.append(s1.id)
-            s0.pred_relations.append(relation)
+            s0.pred_parent_id.append(s1.id)
+            s0.pred_relation.append(relation)
             self.buffer.insert(0, self.stack.pop())
 
         elif transition == 'swap':
@@ -283,6 +283,6 @@ class CustomTransitionSystem:
         elif transition == 'drop':
             b = self.buffer.pop(0)
             b.pred_feats = 'O'
-            b.pred_parent_ids = [-1]
-            b.pred_relations = ['none']
+            b.pred_parent_id = [-1]
+            b.pred_relation = ['none']
             self.tags[b.id] = 'O'

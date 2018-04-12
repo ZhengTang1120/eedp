@@ -39,8 +39,9 @@ def brat_to_conllx(text, annotations):
                 rels = list()
                 heads = list()
                 for rel, head, hlabel in get_relhead(annotations, starts, ends, tbm, i):
-                    rels.append(rel)
-                    heads.append(head)
+                    if head not in heads:
+                        rels.append(rel)
+                        heads.append(head)
                 entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label[0], head=heads, deprel=rels)
                 conllx.append(entry)
         except Exception as e:
@@ -94,7 +95,12 @@ def get_relhead(annotations, starts, ends, tbm, tok):
     # if mention is multitoken, all tokens should point to the mention head
     if tbm.end != ends[tok]:
         head, hlabel = get_mention_head(annotations, ends, tbm.id)
-        return [('multitoken', head, None)]
+        # get_mention_head returns the one-based word index
+        # but tok is zero-based, which produces some subtle errors
+        if head == tok + 1:
+            return [('root', 0, None)]
+        else:
+            return [('multitoken', head, None)]
     # if the mention is a trigger, then use the event id
     mention_id = tbm.id
     for a in annotations:

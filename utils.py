@@ -65,7 +65,7 @@ def make_vocabularies3(events):
                 char_count.update(c for c in e.norm)
             tag_count.update(e.postag for e in event)
             for e in event:
-                relation_count.update(r for r in e.relations if r != 'none')
+                relation_count.update(r for r in e.relation if r != 'none')
             entity_count.update(e.feats for e in event)
     special = ['*unk*', '*pad*']
     words = special + list(word_count.keys())
@@ -96,7 +96,7 @@ def make_vocabularies2(sentences, events):
         char_count.update(c for c in e.norm for e in event)
         tag_count.update(e.postag for e in event)
         for e in event:
-            ev_relation_count.update(r for r in e.relations if r != 'none')
+            ev_relation_count.update(r for r in e.relation if r != 'none')
         entity_count.update(e.feats for e in event)
     special = ['*unk*', '*pad*']
     words = special + list(word_count.keys())
@@ -115,12 +115,14 @@ def gen_conllx(filename, non_proj=False):
     """
     read = 0
     dropped = 0
-    root = ConllEntry(id=0, form='*root*', postag='*root*', head=[], deprel=[], feats='O')
+    if "brat" in filename:
+        root = ConllEntry(id=0, form='*root*', postag='*root*', head=[], deprel=[], feats='O')
+    else:
+        root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel="rroot", feats='O')
     with open(filename) as f:
         sentence = [root]
         for line in f:
             if line.isspace() and len(sentence) > 1:
-                sentence[0].doc_from = sentence[1].doc_from
                 yield sentence
                 read += 1
                 sentence = [root]
@@ -154,13 +156,12 @@ class ConllEntry:
         self.deprel = deprel
         self.phead = phead
         self.pdeprel = pdeprel
-        self.doc_from = doc_from
         # aliases
-        self.parent_ids = self.head
-        self.relations = self.deprel
+        self.parent_id = self.head
+        self.relation = self.deprel
         self.brat_label = self.feats
-        self.pred_parent_ids = []
-        self.pred_relations = []
+        self.pred_parent_id = []
+        self.pred_relation = []
 
     def __repr__(self):
         return '<ConllEntry: %s>' % self.form
@@ -176,19 +177,19 @@ class ConllEntry:
             self.head,
             self.deprel,
             self.phead,
-            self.pdeprel,
-            self.doc_from
+            self.pdeprel
         ]
         return '\t'.join('_' if f is None else str(f) for f in fields)
 
     @staticmethod
     def from_line(line):
-        [id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel, doc_from] = line.strip().split('\t')
+        [id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel] = line.strip().split('\t')
         id = int(id)
         lemma = lemma if lemma != '_' else None
         feats = feats if feats != '_' else None
         head = eval(head)
         phead = int(phead) if phead != '_' else None
         pdeprel = pdeprel if pdeprel != '_' else None
-        deprel = eval(deprel) if deprel != "skipped" else "skipped"
-        return ConllEntry(id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel, doc_from)
+        if type(deprel) is not str:
+            deprel = eval(deprel) if deprel != "skipped" else "skipped"
+        return ConllEntry(id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel)
