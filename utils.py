@@ -123,7 +123,11 @@ def gen_conllx(filename, non_proj=False):
         sentence = [root]
         for line in f:
             if line.isspace() and len(sentence) > 1:
-                yield sentence
+                if "brat" in filename or non_proj or is_projective(sentence):
+                    yield sentence
+                else:
+                    yield [ConllEntry(id=1, form='*dropped*', postag='*dropped*', head=-1, deprel='dropped', feats='O')]
+                    dropped += 1
                 read += 1
                 sentence = [root]
                 continue
@@ -132,9 +136,50 @@ def gen_conllx(filename, non_proj=False):
         # we may still have one sentence in memory
         # if the file doesn't end in an empty line
         if len(sentence) > 1:
-            yield sentence
+            if "brat" in filename or  is_projective(sentence) or non_proj:
+                yield sentence
+            else:
+                dropped += 1
+                yield [ConllEntry(id=1, form='*dropped*', postag='*dropped*', head=-1, deprel='dropped', feats='O')]
             read += 1
     print(f'{read:,} sentences read.')
+
+def is_projective(sentence):
+    """returns true if the sentence is projective"""
+    roots = list(sentence)
+    # keep track of number of children that haven't been
+    # assigned to each entry yet
+    unassigned = {
+        entry.id: sum(1 for e in sentence if e.parent_id == entry.id)
+        for entry in sentence
+    }
+    # we need to find the parent of each word in the sentence
+    for _ in range(len(sentence)):
+        # only consider the forest roots
+        for i in range(len(roots)):
+            if roots[i].parent_id == -1 and unassigned[roots[i].id] == 0 and roots[i].id != 0:
+                del roots[i]
+                break
+    # we need to find the parent of each word in the sentence
+    for _ in range(len(sentence)):
+        # only consider the forest roots
+        for i in range(len(roots) - 1):
+            # attach entries if:
+            #   - they are parent-child
+            #   - they are next to each other
+            #   - the child has already been assigned all its children
+            if roots[i].parent_id == roots[i+1].id and unassigned[roots[i].id] == 0:
+                unassigned[roots[i+1].id] -= 1
+                del roots[i]
+                break
+            if roots[i+1].parent_id == roots[i].id and unassigned[roots[i+1].id] == 0:
+                unassigned[roots[i].id] -= 1
+                del roots[i+1]
+                break
+        if len(roots) > 1 and roots[-1].parent_id == -1:
+            del roots[-1]
+    # if more than one root remains then it is not projective
+    return len(roots) == 1
 
 class ConllEntry:
     """
