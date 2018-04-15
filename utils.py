@@ -235,6 +235,6 @@ class ConllEntry:
         head = eval(head)
         phead = int(phead) if phead != '_' else None
         pdeprel = pdeprel if pdeprel != '_' else None
-        if type(deprel) is not str:
+        if "[" in deprel and "]" in deprel:
             deprel = eval(deprel) if deprel != "skipped" else "skipped"
         return ConllEntry(id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel)
