@@ -19,10 +19,10 @@ class CustomTransitionSystem:
     def count_arcs(self, a, b):
         c = 0
         for arc in self.arcs:
-            # if arc.head.id == a.id and arc.dependent.id == b.id:
-            #     c += 1
-            if arc.head.id == b.id and arc.dependent.id == a.id:
+            if arc.head.id == a.id and arc.dependent.id == b.id:
                 c += 1
+            # if arc.head.id == b.id and arc.dependent.id == a.id:
+                # c += 1
         return c
 
     def is_legal(self, transition):
@@ -40,7 +40,7 @@ class CustomTransitionSystem:
             s1 = self.stack[-2]
             if s1.id == 0:
                 return False
-            return self.count_arcs(s0, s1) == 0
+            return self.count_arcs(s1, s0) == 0
 
         elif transition == 'right_reduce':
             # there must be at least two things in the stack
@@ -51,7 +51,7 @@ class CustomTransitionSystem:
             s1 = self.stack[-2]
             # if len(self.buffer) == 0:
             #     return True
-            return self.count_arcs(s1, s0) == 0
+            return self.count_arcs(s0, s1) == 0
 
         elif transition == 'left_attach':
             # there must be at least two things in the stack
@@ -63,7 +63,7 @@ class CustomTransitionSystem:
             s1 = self.stack[-2]
             if s1.id == 0:
                 return False
-            return self.count_arcs(s0, s1) == 0
+            return self.count_arcs(s0, s1) == 0 and self.count_arcs(s1, s0) == 0
 
         elif transition == 'right_attach':
             # there must be at least two things in the stack
@@ -72,7 +72,7 @@ class CustomTransitionSystem:
                 return False
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            return self.count_arcs(s1, s0) == 0
+            return self.count_arcs(s0, s1) == 0 and self.count_arcs(s1, s0) == 0
 
         elif transition == 'swap':
             # can't swap things that have already been swapped
