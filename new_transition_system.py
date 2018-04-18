@@ -19,10 +19,10 @@ class CustomTransitionSystem:
     def count_arcs(self, a, b):
         c = 0
         for arc in self.arcs:
-            if arc.head.id == a.id and arc.dependent.id == b.id:
-                c += 1
-            # elif arc.head.id == b.id and arc.dependent.id == a.id:
+            # if arc.head.id == a.id and arc.dependent.id == b.id:
             #     c += 1
+            if arc.head.id == b.id and arc.dependent.id == a.id:
+                c += 1
         return c
 
     def is_legal(self, transition):
@@ -49,8 +49,8 @@ class CustomTransitionSystem:
                 return False
             s0 = self.stack[-1]
             s1 = self.stack[-2]
-            if len(self.buffer) == 0:
-                return True
+            # if len(self.buffer) == 0:
+            #     return True
             return self.count_arcs(s1, s0) == 0
 
         elif transition == 'left_attach':
