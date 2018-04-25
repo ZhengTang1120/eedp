@@ -39,11 +39,9 @@ def brat_to_conllx(text, annotations):
                 rels = list()
                 heads = list()
                 for rel, head, hlabel in get_relhead(annotations, starts, ends, tbm, i):
-                    if head not in heads and rel in ["root", "none", "Theme", "Cause", "multitoken"]:
+                    if head not in heads:
                         rels.append(rel)
                         heads.append(head)
-                    else:
-                        print (rel)
                 entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label[0], head=heads, deprel=rels)
                 conllx.append(entry)
         except Exception as e:
