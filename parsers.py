@@ -324,47 +324,44 @@ class ArcHybridParser:
                                     correct_transitions.append(t)
 
                         # select transition
+                        best_legal = max(legal_transitions, key=attrgetter('score'))
+                        best_correct = max(correct_transitions, key=attrgetter('score'))
+
+                        # select transition
                         best_legal_op = max(legal_transitions, key=attrgetter('score_op'))
-                        best_correct_op = max(correct_transitions, key=attrgetter('score_op'))
 
                         # accumulate losses
-                        loss = 1 - best_correct_op.score_op + best_legal_op.score_op
-                        dy_loss = 1 - best_correct_op.dy_score_op + best_legal_op.dy_score_op
+                        loss = 1 - best_correct.score_op + best_legal_op.score_op
+                        dy_loss = 1 - best_correct.dy_score_op + best_legal_op.dy_score_op
 
-                        if best_legal_op != best_correct_op and loss > 0:
+                        if best_legal_op != best_correct and loss > 0:
                             losses.append(dy_loss)
                             loss_chunk += loss
                             loss_all += loss
 
                         # select transition
                         best_legal_lbl = max(legal_transitions, key=attrgetter('score_lbl'))
-                        best_correct_lbl = max(correct_transitions, key=attrgetter('score_lbl'))
 
                         # accumulate losses
-                        loss = 1 - best_correct_lbl.score_lbl + best_legal_lbl.score_lbl
-                        dy_loss = 1 - best_correct_lbl.dy_score_lbl + best_legal_lbl.dy_score_lbl
+                        loss = 1 - best_correct.score_lbl + best_legal_lbl.score_lbl
+                        dy_loss = 1 - best_correct.dy_score_lbl + best_legal_lbl.dy_score_lbl
 
-                        if best_legal_lbl != best_correct_lbl and loss > 0:
+                        if best_legal_lbl != best_correct and loss > 0:
                             losses.append(dy_loss)
                             loss_chunk += loss
                             loss_all += loss
 
                         # select transition
                         best_legal_tg = max(legal_transitions, key=attrgetter('score_tg'))
-                        best_correct_tg = max(correct_transitions, key=attrgetter('score_tg'))
 
                         # accumulate losses
-                        loss = 1 - best_correct_tg.score_tg + best_legal_tg.score_tg
-                        dy_loss = 1 - best_correct_tg.dy_score_tg + best_legal_tg.dy_score_tg
+                        loss = 1 - best_correct.score_tg + best_legal_tg.score_tg
+                        dy_loss = 1 - best_correct.dy_score_tg + best_legal_tg.dy_score_tg
 
-                        if best_legal_tg != best_correct_tg and loss > 0:
+                        if best_legal_tg != best_correct and loss > 0:
                             losses.append(dy_loss)
                             loss_chunk += loss
                             loss_all += loss
-
-                        # select transition
-                        best_legal = max(legal_transitions, key=attrgetter('score'))
-                        best_correct = max(correct_transitions, key=attrgetter('score'))
 
                     else:
                         if state.is_legal('shift'):
