@@ -15,6 +15,7 @@ from new_transition_system import CustomTransitionSystem
 from copy import deepcopy
 
 Transition = namedtuple('Transition', 'op label trigger score dy_score')
+new_Transition = namedtuple('Transition', 'op label trigger score_op, score_lbl, score_tg, score, dy_score_op, dy_score_lbl, dy_score_tg, dy_score')
 
 class ArcHybridParser:
 
@@ -293,25 +294,25 @@ class ArcHybridParser:
                                 for j, tg in enumerate(triggers[1:], start=2):
                                     if (hasattr(state.buffer[0], 'is_parent') and state.buffer[0].is_parent and j == 1):
                                         continue
-                                    t = Transition(lt, None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
+                                    t = new_Transition(lt, None, tg, np_op_scores[ix], np_lbl_scores[0], np_tg_scores[j], np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix], dy_lbl_scores[0], dy_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
                                     legal_transitions.append(t)
                             if lt == "drop":
-                                t = Transition(lt, None, "O", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[1], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
+                                t = new_Transition(lt, None, "O", np_op_scores[ix], np_lbl_scores[0], np_tg_scores[1], np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[1], dy_op_scores[ix], dy_lbl_scores[0], dy_tg_scores[1], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
                                 legal_transitions.append(t)
-                                t = Transition(lt, None, "Protein", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[4], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[4])
+                                t = new_Transition(lt, None, "Protein", np_op_scores[ix], np_lbl_scores[0], np_tg_scores[4], np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[4], dy_op_scores[ix], dy_lbl_scores[0], dy_tg_scores[4], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[4])
                                 legal_transitions.append(t)
                             if lt in ['left_reduce', 'left_attach']:
                                 for j, r in enumerate(relations):
                                     k = 1 + 2* j
-                                    t = Transition(lt, r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
+                                    t = new_Transition(lt, r, None, np_op_scores[ix], np_lbl_scores[k], np_tg_scores[0], np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix], dy_lbl_scores[k], dy_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
                                     legal_transitions.append(t)
                             if lt in ['right_reduce', 'right_attach']:
                                 for j, r in enumerate(relations):
                                     k = 2 + 2 * j
-                                    t = Transition(lt, r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
+                                    t = new_Transition(lt, r, None, np_op_scores[ix], np_lbl_scores[k], np_tg_scores[0], np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix], dy_lbl_scores[k], dy_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
                                     legal_transitions.append(t)
                             if lt == "swap":
-                                t = Transition(lt, None, None, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[0])
+                                t = new_Transition(lt, None, None, np_op_scores[ix], np_lbl_scores[0], np_tg_scores[0], np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[0], dy_op_scores[ix], dy_lbl_scores[0], dy_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[0])
                                 legal_transitions.append(t)
                         # collect all correct transitions
                         correct_transitions = []
@@ -321,6 +322,49 @@ class ArcHybridParser:
                                 label = state.get_token_label_for_transition(t[0])
                                 if t[1] == relation and t[2] == label:
                                     correct_transitions.append(t)
+
+                        # select transition
+                        best_legal_op = max(legal_transitions, key=attrgetter('score_op'))
+                        best_correct_op = max(correct_transitions, key=attrgetter('score_op'))
+
+                        # accumulate losses
+                        loss = 1 - best_correct_op.score_op + best_legal_op.score_op
+                        dy_loss = 1 - best_correct_op.dy_score_op + best_legal_op.dy_score_op
+
+                        if best_legal_op != best_correct_op and loss > 0:
+                            losses.append(dy_loss)
+                            loss_chunk += loss
+                            loss_all += loss
+
+                        # select transition
+                        best_legal_lbl = max(legal_transitions, key=attrgetter('score_lbl'))
+                        best_correct_lbl = max(correct_transitions, key=attrgetter('score_lbl'))
+
+                        # accumulate losses
+                        loss = 1 - best_correct_lbl.score_lbl + best_legal_lbl.score_lbl
+                        dy_loss = 1 - best_correct_lbl.dy_score_lbl + best_legal_lbl.dy_score_lbl
+
+                        if best_legal_lbl != best_correct_lbl and loss > 0:
+                            losses.append(dy_loss)
+                            loss_chunk += loss
+                            loss_all += loss
+
+                        # select transition
+                        best_legal_tg = max(legal_transitions, key=attrgetter('score_tg'))
+                        best_correct_tg = max(correct_transitions, key=attrgetter('score_tg'))
+
+                        # accumulate losses
+                        loss = 1 - best_correct_tg.score_tg + best_legal_tg.score_tg
+                        dy_loss = 1 - best_correct_tg.dy_score_tg + best_legal_tg.dy_score_tg
+
+                        if best_legal_tg != best_correct_tg and loss > 0:
+                            losses.append(dy_loss)
+                            loss_chunk += loss
+                            loss_all += loss
+
+                        # select transition
+                        best_legal = max(legal_transitions, key=attrgetter('score'))
+                        best_correct = max(correct_transitions, key=attrgetter('score'))
 
                     else:
                         if state.is_legal('shift'):
@@ -350,25 +394,19 @@ class ArcHybridParser:
                                 if t.op in ['shift', 'drop'] or t.label in state.stack[-1].relation:
                                     correct_transitions.append(t)
 
-                    # print('---')
-                    # print('legal',legal_transitions)
+                        # select transition
+                        best_legal = max(legal_transitions, key=attrgetter('score'))
+                        best_correct = max(correct_transitions, key=attrgetter('score'))
 
-                    # print('correct',correct_transitions)
-                    # print('sentence',sentence)
-                    # print(state.stack)
-                    # print(state.buffer)
-                    # select transition
-                    best_legal = max(legal_transitions, key=attrgetter('score'))
-                    best_correct = max(correct_transitions, key=attrgetter('score'))
+                        # accumulate losses
+                        loss = 1 - best_correct.score + best_legal.score
+                        dy_loss = 1 - best_correct.dy_score + best_legal.dy_score
 
-                    # accumulate losses
-                    loss = 1 - best_correct.score + best_legal.score
-                    dy_loss = 1 - best_correct.dy_score + best_legal.dy_score
+                        if best_legal != best_correct and loss > 0:
+                            losses.append(dy_loss)
+                            loss_chunk += loss
+                            loss_all += loss
 
-                    if best_legal != best_correct and loss > 0:
-                        losses.append(dy_loss)
-                        loss_chunk += loss
-                        loss_all += loss
                     total_chunk += 1
                     total_all += 1
 
