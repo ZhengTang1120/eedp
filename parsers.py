@@ -66,8 +66,8 @@ class ArcHybridParser:
         self.entities = entities
 
         self.model = dy.Model()
-        self.trainer = dy.AdamTrainer(self.model)
-
+        self.syntax_trainer = dy.AdamTrainer(self.model)
+        self.event_trainer  = dy.AdamTrainer(self.model)
         # words and tags, entities embeddings
         self.wlookup = self.model.add_lookup_parameters((len(self.i2w), self.w_embed_size))
         self.tlookup = self.model.add_lookup_parameters((len(self.i2t), self.t_embed_size))
@@ -245,12 +245,12 @@ class ArcHybridParser:
         return dy.softmax(op_output), dy.softmax(lbl_output), dy.softmax(tg_output)
 
     def train_dependencies(self, sentences):
-        self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations)
+        self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations, self.syntax_trainer)
 
     def train_events(self, sentences):
-        self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.i2tg)
+        self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.event_trainer, self.i2tg)
 
-    def _train(self, sentences, transition_system, evaluate, relations, triggers = None):
+    def _train(self, sentences, transition_system, evaluate, relations, trainer, triggers = None):
         start_chunk = time.time()
         start_all = time.time()
         loss_chunk = 0
@@ -417,7 +417,7 @@ class ArcHybridParser:
                 loss = dy.esum(losses)
                 loss.scalar_value()
                 loss.backward()
-                self.trainer.update()
+                trainer.update()
                 dy.renew_cg()
                 self.set_empty_vector()
                 losses = []
@@ -427,7 +427,7 @@ class ArcHybridParser:
             loss = dy.esum(losses)
             loss.scalar_value()
             loss.backward()
-            self.trainer.update()
+            trainer.update()
             dy.renew_cg()
             self.set_empty_vector()
 
