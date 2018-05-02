@@ -241,18 +241,18 @@ class ArcHybridParser:
         # prev_* refers to the previous decisions
         input = dy.concatenate([b, s0, s1, s2, self.prev_ev_op, self.prev_ev_lbl, self.prev_tg_lbl])
         # predict action
-        op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
-        op_hidden = dy.rectify(op_hidden) # relu
+        op_hidden = dy.rectify(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
+        # op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
         op_output = self.ev_op_output.expr() * op_hidden + self.ev_op_output_bias.expr()
         self.prev_ev_op = dy.softmax(op_output)
         # predict label
-        lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
-        lbl_hidden = dy.rectify(lbl_hidden) # relu
+        lbl_hidden = dy.rectify(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
+        # lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
         lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
         self.prev_ev_lbl = dy.softmax(lbl_output)
         # predict trigger label
-        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
-        tg_hidden = dy.rectify(tg_hidden) # relu
+        tg_hidden = dy.rectify(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
+        # tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
         tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
         self.prev_tg_lbl = dy.softmax(tg_output)
         # return scores
