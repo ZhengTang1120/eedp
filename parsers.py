@@ -121,30 +121,42 @@ class ArcHybridParser:
             self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
             self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
             self.dep_lbl_output_bias = self.model.add_parameters((out_size))
+
+        # output sizes of FFNNs related to event parsing
+        self.ev_op_out_size = 7 # shift, left_reduce, right_reduce, left_attach, right_attach, swap, drop
+        self.ev_lbl_out_size = 1 + len(self.ev_relations) * 2
+        self.tg_lbl_out_size = 1 + len(self.i2tg)
+
+        # input size of FFNNs related to event parsing
+        self.ev_in_size = self.lstm_hidden_size * 4 + self.ev_op_out_size + self.ev_lbl_out_size + self.tg_lbl_out_size
+
         if self.ev_relations:
             # fully connected network with one hidden layer
             # to predict the transition to take next
-            out_size = 7 # shift, left_reduce, right_reduce, left_attach, right_attach, swap, drop
-            self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.lstm_hidden_size * 4))
+            self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.ev_in_size))
             self.ev_op_hidden_bias = self.model.add_parameters((self.ev_op_hidden_size))
-            self.ev_op_output      = self.model.add_parameters((out_size, self.ev_op_hidden_size))
-            self.ev_op_output_bias = self.model.add_parameters((out_size))
+            self.ev_op_output      = self.model.add_parameters((self.ev_op_out_size, self.ev_op_hidden_size))
+            self.ev_op_output_bias = self.model.add_parameters((self.ev_op_out_size))
 
             # fully connected network with one hidden layer
             # to predict the arc label
-            out_size = 1 + len(self.ev_relations) * 2
-            self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.lstm_hidden_size * 4))
+            self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.ev_in_size))
             self.ev_lbl_hidden_bias = self.model.add_parameters((self.ev_lbl_hidden_size))
-            self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
-            self.ev_lbl_output_bias = self.model.add_parameters((out_size))
+            self.ev_lbl_output      = self.model.add_parameters((self.ev_lbl_out_size, self.ev_lbl_hidden_size))
+            self.ev_lbl_output_bias = self.model.add_parameters((self.ev_lbl_out_size))
+
         if self.entities:
             # fully connected network with one hidden layer
             # to predict the trigger label
-            out_size = 1 + len(self.i2tg)
-            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 4))
+            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.ev_in_size))
             self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
-            self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
-            self.tg_lbl_output_bias = self.model.add_parameters((out_size))
+            self.tg_lbl_output      = self.model.add_parameters((self.tg_lbl_out_size, self.tg_lbl_hidden_size))
+            self.tg_lbl_output_bias = self.model.add_parameters((self.tg_lbl_out_size))
+
+        # initialize to zeros (TODO is this correct?)
+        self.prev_ev_op  = dy.inputTensor([0] * self.ev_op_out_size)
+        self.prev_ev_lbl = dy.inputTensor([0] * self.ev_lbl_out_size)
+        self.prev_tg_lbl = dy.inputTensor([0] * self.tg_lbl_out_size)
 
     def save(self, name):
         params = (
@@ -227,22 +239,29 @@ class ArcHybridParser:
 
     def evaluate_events(self, stack, buffer, features):
         # construct input vector
-        b = features[buffer[0].id] if len(buffer) > 0 else self.empty
-        s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
-        s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
-        s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
-        input = dy.concatenate([b, s0, s1, s2])
+        b  = features[buffer[0].id] if len(buffer) > 0 else self.empty
+        s0 = features[stack[-1].id] if len(stack)  > 0 else self.empty
+        s1 = features[stack[-2].id] if len(stack)  > 1 else self.empty
+        s2 = features[stack[-3].id] if len(stack)  > 2 else self.empty
+        # prev_* refers to the previous decisions
+        input = dy.concatenate([b, s0, s1, s2, self.prev_ev_op, self.prev_ev_lbl, self.prev_tg_lbl])
         # predict action
         op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
+        op_hidden = dy.rectify(op_hidden) # relu
         op_output = self.ev_op_output.expr() * op_hidden + self.ev_op_output_bias.expr()
+        self.prev_ev_op = dy.softmax(op_output)
         # predict label
         lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
+        lbl_hidden = dy.rectify(lbl_hidden) # relu
         lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
+        self.prev_ev_lbl = dy.softmax(lbl_output)
         # predict trigger label
         tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
+        tg_hidden = dy.rectify(tg_hidden) # relu
         tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
+        self.prev_tg_lbl = dy.softmax(tg_output)
         # return scores
-        return dy.softmax(op_output), dy.softmax(lbl_output), dy.softmax(tg_output)
+        return self.prev_ev_op, self.prev_ev_lbl, self.prev_tg_lbl
 
     def train_dependencies(self, sentences):
         self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations, self.syntax_trainer)
