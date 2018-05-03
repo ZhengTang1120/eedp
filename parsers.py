@@ -273,11 +273,11 @@ class ArcHybridParser:
         total_all = 0
         losses = []
         self.set_empty_vector()
-        # initialize to zeros (TODO is this correct?)
-        self.prev_ev_op  = dy.inputTensor([0] * self.ev_op_out_size)
-        self.prev_ev_lbl = dy.inputTensor([0] * self.ev_lbl_out_size)
-        self.prev_tg_lbl = dy.inputTensor([0] * self.tg_lbl_out_size)
         for i, sentence in enumerate(sentences):
+            # initialize to zeros (TODO is this correct?)
+            self.prev_ev_op  = dy.inputTensor([0] * self.ev_op_out_size)
+            self.prev_ev_lbl = dy.inputTensor([0] * self.ev_lbl_out_size)
+            self.prev_tg_lbl = dy.inputTensor([0] * self.tg_lbl_out_size)
             if i != 0 and i % 100 == 0:
                 end = time.time()
                 print(f'count: {i}\tloss: {loss_chunk/total_chunk:.4f}\ttime: {end-start_chunk:,.2f} secs')
