@@ -15,7 +15,8 @@ EventMention = namedtuple('EventMention', 'id label trigger arguments')
 total_sentences = 0
 skipped_sentences = 0
 
-API = ProcessorsBaseAPI(port=8888)
+API = ProcessorsBaseAPI(hostname="128.196.142.36", port=8881)
+#API = ProcessorsBaseAPI(port=8888)
 
 def brat_to_conllx(text, annotations):
     """
@@ -26,7 +27,7 @@ def brat_to_conllx(text, annotations):
     root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel='rroot')
     annotations = parse_annotations(annotations)
     skipped = 0
-    doc = API.bionlp.annotate(text)
+    doc = API.clu.bio.annotate(text)
     for words, starts, ends, tags in get_token_spans(doc):
         total_sentences += 1
         conllx = [root]
