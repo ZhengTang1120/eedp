@@ -12,17 +12,17 @@ if __name__ == '__main__':
     parser.add_argument('outfile')
     args = parser.parse_args()
 
-    print('loading ...')
+    # print('loading ...')
     parser = ArcHybridParser.load(args.model)
     sentences = read_conllx(args.infile, non_proj=True)
 
-    print('parsing ...')
+    # print('parsing ...')
     for i, s in enumerate(sentences):
-        print('parsing sentence', i)
+        # print('parsing sentence', i)
         if len(s) > 2:
             parser.parse_sentence(s)
 
-    print('writing output ...')
+    # print('writing output ...')
     for s in sentences:
         if len(s) > 2:
             for e in s:
