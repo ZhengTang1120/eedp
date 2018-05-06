@@ -73,7 +73,7 @@ def get_tbm(annotations, start, end):
     if len(al) > 0:
         res = None
         for a in al:
-            if "egulation" not in a:
+            if "egulation" not in a.label:
                 res = a
         if res == None:
             return al[-1]
