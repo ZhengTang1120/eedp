@@ -7,7 +7,7 @@ from utils import *
 import json
 import itertools
 
-API = ProcessorsBaseAPI(port=8888)
+API = ProcessorsBaseAPI(hostname="128.196.142.36", port=8881)
 
 # brat mentions
 TextboundMention = namedtuple('TextboundMention', 'id label start end text')
@@ -65,7 +65,8 @@ def parse_event_tree(event_tree, entities, eid, sent_ann):
                             event_tree[head]["Theme"].remove(theme)
                             event_tree[head]["Theme"+str(i)].append(theme)
         except KeyError:
-            print ("Entity Not Found")
+            continue
+            # print ("Entity Not Found")
     # Parse Event Tree to Events
     events = dict()
     res = list()
@@ -78,7 +79,8 @@ def parse_event_tree(event_tree, entities, eid, sent_ann):
                 events[entities[head][0][0]+"|"+str(eid)] = ("E"+str(eid), line)
                 eid += 1
         except KeyError:
-            print ("Entity Not Found")
+            continue
+            # print ("Entity Not Found")
     # Map Event ID to Token ID
     for head in events:
         for t, tid in enumerate(events[head][1][2:], start=2):
@@ -107,14 +109,14 @@ if __name__ == '__main__':
     es = 0
     for fname in glob.glob(os.path.join(args.datadir, '*.a1')):
         root = os.path.splitext(fname)[0]
-        print (root)
+        # print (root)
         name = os.path.basename(root)
         
         txt = read(root + '.txt')
         a1 = read(root + '.a1')
         a1 = list(parse_annotations(a1))
         t1 = open(root + '.a2.t1', "w")
-        doc = API.bionlp.annotate(txt)
+        doc = API.clu.bio.annotate(txt)
         curr_sents = sentences[:len(doc.sentences)]
         sentences = sentences[len(doc.sentences):]
         entities = dict()
@@ -138,7 +140,8 @@ if __name__ == '__main__':
                         if tid:
                             proteins[token] = ([tid],multitoken_start_id if multitoken_start_id != -1 else j-1 )
                         else:
-                            print ("Protein Not Found")
+                            continue
+                            # print ("Protein Not Found")
                         multitoken_start = -1
                         multitoken_start_id = -1
                         for k, th in enumerate(token.head):
@@ -193,6 +196,6 @@ if __name__ == '__main__':
             if "Theme:" in line and not invalid:
                 t1.write(line+"\n") 
         t1.close()
-        print ("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
-        os.system("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
-    print (es)
+    #     print ("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
+    #     os.system("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
+    # print (es)
