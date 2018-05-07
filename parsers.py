@@ -229,7 +229,7 @@ class ArcHybridParser:
             
         def get_children_avg(children):
             if len(children) > 0:
-                return dy.average([features[c.id] for c in children])
+                return dy.average([features[c] for c in children])
             else:
                 return self.empty
 
