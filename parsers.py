@@ -226,7 +226,7 @@ class ArcHybridParser:
         return dy.softmax(op_output), dy.softmax(lbl_output)
 
     def evaluate_events(self, stack, buffer, features):
-            
+
         def get_children_avg(children):
             if len(children) > 0:
                 return dy.average([features[c] for c in children])

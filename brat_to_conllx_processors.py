@@ -15,8 +15,7 @@ EventMention = namedtuple('EventMention', 'id label trigger arguments')
 total_sentences = 0
 skipped_sentences = 0
 
-API = ProcessorsBaseAPI(hostname="128.196.142.36", port=8881)
-#API = ProcessorsBaseAPI(port=8888)
+API = ProcessorsBaseAPI(port=8888)
 
 def brat_to_conllx(text, annotations):
     """
@@ -27,7 +26,7 @@ def brat_to_conllx(text, annotations):
     root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel='rroot')
     annotations = parse_annotations(annotations)
     skipped = 0
-    doc = API.clu.bio.annotate(text)
+    doc = API.bionlp.annotate(text)
     for words, starts, ends, tags in get_token_spans(doc):
         total_sentences += 1
         conllx = [root]
@@ -41,24 +40,20 @@ def brat_to_conllx(text, annotations):
                 heads = list()
                 for rel, head, hlabel in get_relhead(annotations, starts, ends, tbm, i):
                     if head not in heads:
-                        if head != i+1:
-                            rels.append(rel)
-                            heads.append(head)
-                if len(heads) == 0:
-                    heads = [0]
-                    rels = ['root']
-                entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label, head=heads, deprel=rels)
+                        rels.append(rel)
+                        heads.append(head)
+                entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label[0], head=heads, deprel=rels)
                 conllx.append(entry)
         except Exception as e:
             # get_mention_head() searches for the token's end position
             # in the `ends` list that corresponds to the sentence's tokens,
             # and throws an exception if the provided end does not correspond to any token
             # print('ERROR: tokenization does not align')
-            print(e)
-            print (text[ends[-3]:ends[-1]])
-            print(words)
-            print (ends)
+            # print(e)
+            # print(words)
+            # print(ends)
             skipped_sentences += 1
+            print (e)
             yield [ConllEntry(id=1, form='*skipped*', postag='*skipped*', head=-1, deprel='skipped', feats='O')]
             continue
         yield conllx
@@ -70,15 +65,10 @@ def get_tbm(annotations, start, end):
     for a in annotations:
         if a.id.startswith('T') and a.start < end and start < a.end:
             al.append(a)
+    if len(al) > 1:
+        print(al)
     if len(al) > 0:
-        res = None
-        for a in al:
-            if "egulation" not in a.label:
-                res = a
-        if res == None:
-            return al[-1]
-        else:
-            return res
+        return al[-1]
     else:
         return None
 
@@ -94,7 +84,7 @@ def get_mention_head(annotations, ends, mention_id):
                         break
                 assert i is not None
                 return (i + 1, a.label)
-            except:
+            except ValueError:
                 raise Exception(a)
 
 def get_relhead(annotations, starts, ends, tbm, tok):
@@ -150,11 +140,10 @@ def parse_annotations(annotations):
         if line.startswith('T'):
             [id, data, text] = line.split('\t')
             [label, start, end] = data.split(' ')
-            # if start+end not in ann_dict:
-            #     ann_dict[start+end] = TextboundMention(id, [label], int(start), int(end), text)
-            # else:
-            #     ann_dict[start+end].label.append(label)
-            res.append(TextboundMention(id, label, int(start), int(end), text))
+            if start+end not in ann_dict:
+                ann_dict[start+end] = TextboundMention(id, [label], int(start), int(end), text)
+            else:
+                ann_dict[start+end].label.append(label)
         elif line.startswith('E'):
             [id, data] = line.split('\t')
             [label_trigger, *args] = data.split(' ')
