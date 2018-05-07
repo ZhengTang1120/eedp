@@ -22,7 +22,8 @@ def make_parser(args, word_count, words, tags, chars, entities=None, ev_rels=Non
         args.ev_lbl_hidden_size,
         args.tg_lbl_hidden_size,
         args.alpha,
-        args.p_explore
+        args.p_explore,
+        args.lr
     )
 
 if __name__ == '__main__':
@@ -48,6 +49,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs',              type=int,   default=30)
     parser.add_argument('--alpha',               type=float, default=0.25) # for word dropout
     parser.add_argument('--p_explore',           type=float, default=0.0)
+    parser.add_argument('--lr',                  type=float, default=0.001)
     args = parser.parse_args()
 
     if not os.path.exists(args.outdir):
