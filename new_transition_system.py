@@ -246,7 +246,7 @@ class CustomTransitionSystem:
             arc = Arc(s0, s1, relation)
             self.arcs.append(arc)
             s1.pred_parent_id.append(s0.id)
-            s0.children.append(s1)
+            s0.children.append(s1.id)
             s1.pred_relation.append(relation)
             self.stack.pop(-2)
 
@@ -257,7 +257,7 @@ class CustomTransitionSystem:
                 arc = Arc(s1, s0, relation)
                 self.arcs.append(arc)
                 s0.pred_parent_id.append(s1.id)
-                s1.children.append(s0)
+                s1.children.append(s0.id)
                 s0.pred_relation.append(relation)
             self.stack.pop()
 
@@ -267,7 +267,7 @@ class CustomTransitionSystem:
             arc = Arc(s0, s1, relation)
             self.arcs.append(arc)
             s1.pred_parent_id.append(s0.id)
-            s0.children.append(s1)
+            s0.children.append(s1.id)
             s1.pred_relation.append(relation)
 
         elif transition == 'right_attach':
@@ -276,7 +276,7 @@ class CustomTransitionSystem:
             arc = Arc(s1, s0, relation)
             self.arcs.append(arc)
             s0.pred_parent_id.append(s1.id)
-            s1.children.append(s0)
+            s1.children.append(s0.id)
             s0.pred_relation.append(relation)
             self.buffer.insert(0, self.stack.pop())
 
