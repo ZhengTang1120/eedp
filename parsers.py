@@ -26,7 +26,9 @@ class ArcHybridParser:
             dep_op_hidden_size, dep_lbl_hidden_size,
             ev_op_hidden_size, ev_lbl_hidden_size,
             tg_lbl_hidden_size,
-            alpha, p_explore):
+            alpha, p_explore, pretrained):
+
+        self.pretrained = pretrained
 
         # counts used for word dropout
         self.word_count = word_count
@@ -66,10 +68,13 @@ class ArcHybridParser:
         self.entities = entities
 
         self.model = dy.Model()
-        self.syntax_trainer = dy.AdamTrainer(self.model)
-        self.event_trainer  = dy.AdamTrainer(self.model)
+        self.trainer = dy.AdamTrainer(self.model)
+
         # words and tags, entities embeddings
         self.wlookup = self.model.add_lookup_parameters((len(self.i2w), self.w_embed_size))
+        for i in range(len(self.i2w)):
+            if np.any(self.pretrained[i]):
+                self.wlookup.init_row(i, self.pretrained[i])
         self.tlookup = self.model.add_lookup_parameters((len(self.i2t), self.t_embed_size))
         self.clookup = self.model.add_lookup_parameters((len(self.i2c), self.c_embed_size))
         self.elookup = self.model.add_lookup_parameters((len(self.i2e), self.e_embed_size))
@@ -109,7 +114,7 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the transition to take next
             out_size = 3 # shift, left_arc, right_arc
-            self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 4))
+            self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 7))
             self.dep_op_hidden_bias = self.model.add_parameters((self.dep_op_hidden_size))
             self.dep_op_output      = self.model.add_parameters((out_size, self.dep_op_hidden_size))
             self.dep_op_output_bias = self.model.add_parameters((out_size))
@@ -117,41 +122,34 @@ class ArcHybridParser:
             # # fully connected network with one hidden layer
             # # to predict the arc label
             out_size = 1 + len(self.dep_relations) * 2
-            self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 4))
+            self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 7))
             self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
             self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
             self.dep_lbl_output_bias = self.model.add_parameters((out_size))
-
-        # output sizes of FFNNs related to event parsing
-        self.ev_op_out_size = 7 # shift, left_reduce, right_reduce, left_attach, right_attach, swap, drop
-        self.ev_lbl_out_size = 1 + len(self.ev_relations) * 2
-        self.tg_lbl_out_size = 1 + len(self.i2tg)
-
-        # input size of FFNNs related to event parsing
-        self.ev_in_size = self.lstm_hidden_size * 4 + self.ev_op_out_size + self.ev_lbl_out_size + self.tg_lbl_out_size
-
         if self.ev_relations:
             # fully connected network with one hidden layer
             # to predict the transition to take next
-            self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.ev_in_size))
+            out_size = 7 # shift, left_reduce, right_reduce, left_attach, right_attach, swap, drop
+            self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.lstm_hidden_size * 7))
             self.ev_op_hidden_bias = self.model.add_parameters((self.ev_op_hidden_size))
-            self.ev_op_output      = self.model.add_parameters((self.ev_op_out_size, self.ev_op_hidden_size))
-            self.ev_op_output_bias = self.model.add_parameters((self.ev_op_out_size))
+            self.ev_op_output      = self.model.add_parameters((out_size, self.ev_op_hidden_size))
+            self.ev_op_output_bias = self.model.add_parameters((out_size))
 
             # fully connected network with one hidden layer
             # to predict the arc label
-            self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.ev_in_size))
+            out_size = 1 + len(self.ev_relations) * 2
+            self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.lstm_hidden_size * 7))
             self.ev_lbl_hidden_bias = self.model.add_parameters((self.ev_lbl_hidden_size))
-            self.ev_lbl_output      = self.model.add_parameters((self.ev_lbl_out_size, self.ev_lbl_hidden_size))
-            self.ev_lbl_output_bias = self.model.add_parameters((self.ev_lbl_out_size))
-
+            self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
+            self.ev_lbl_output_bias = self.model.add_parameters((out_size))
         if self.entities:
             # fully connected network with one hidden layer
             # to predict the trigger label
-            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.ev_in_size))
+            out_size = 1 + len(self.i2tg)
+            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 7))
             self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
-            self.tg_lbl_output      = self.model.add_parameters((self.tg_lbl_out_size, self.tg_lbl_hidden_size))
-            self.tg_lbl_output_bias = self.model.add_parameters((self.tg_lbl_out_size))
+            self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
+            self.tg_lbl_output_bias = self.model.add_parameters((out_size))
 
     def save(self, name):
         params = (
@@ -217,12 +215,21 @@ class ArcHybridParser:
         return outputs
 
     def evaluate_dependencies(self, stack, buffer, features):
+        def get_children_avg(children):
+            if len(children) > 0:
+                return dy.average([features[c] for c in children])
+            else:
+                return self.empty
+
         # construct input vector
         b = features[buffer[0].id] if len(buffer) > 0 else self.empty
         s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
         s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
         s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
-        input = dy.concatenate([b, s0, s1, s2])
+        s0c = get_children_avg(stack[-1].children) if len(stack) > 0 else self.empty
+        s1c = get_children_avg(stack[-2].children) if len(stack) > 1 else self.empty
+        s2c = get_children_avg(stack[-3].children) if len(stack) > 2 else self.empty
+        input = dy.concatenate([b, s0, s1, s2, s0c, s1c, s2c])
         # predict action
         op_hidden = dy.tanh(self.dep_op_hidden.expr() * input + self.dep_op_hidden_bias.expr())
         op_output = self.dep_op_output.expr() * op_hidden + self.dep_op_output_bias.expr()
@@ -233,38 +240,41 @@ class ArcHybridParser:
         return dy.softmax(op_output), dy.softmax(lbl_output)
 
     def evaluate_events(self, stack, buffer, features):
+
+        def get_children_avg(children):
+            if len(children) > 0:
+                return dy.average([features[c] for c in children])
+            else:
+                return self.empty
+
         # construct input vector
-        b  = features[buffer[0].id] if len(buffer) > 0 else self.empty
-        s0 = features[stack[-1].id] if len(stack)  > 0 else self.empty
-        s1 = features[stack[-2].id] if len(stack)  > 1 else self.empty
-        s2 = features[stack[-3].id] if len(stack)  > 2 else self.empty
-        # prev_* refers to the previous decisions
-        input = dy.concatenate([b, s0, s1, s2, self.prev_ev_op, self.prev_ev_lbl, self.prev_tg_lbl])
+        b = features[buffer[0].id] if len(buffer) > 0 else self.empty
+        s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
+        s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
+        s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
+        s0c = get_children_avg(stack[-1].children) if len(stack) > 0 else self.empty
+        s1c = get_children_avg(stack[-2].children) if len(stack) > 1 else self.empty
+        s2c = get_children_avg(stack[-3].children) if len(stack) > 2 else self.empty
+        input = dy.concatenate([b, s0, s1, s2, s0c, s1c, s2c])
         # predict action
-        op_hidden = dy.rectify(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
-        # op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
+        op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
         op_output = self.ev_op_output.expr() * op_hidden + self.ev_op_output_bias.expr()
-        self.prev_ev_op = dy.softmax(op_output)
         # predict label
-        lbl_hidden = dy.rectify(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
-        # lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
+        lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
         lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
-        self.prev_ev_lbl = dy.softmax(lbl_output)
         # predict trigger label
-        tg_hidden = dy.rectify(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
-        # tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
+        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
         tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
-        self.prev_tg_lbl = dy.softmax(tg_output)
         # return scores
-        return self.prev_ev_op, self.prev_ev_lbl, self.prev_tg_lbl
+        return dy.softmax(op_output), dy.softmax(lbl_output), dy.softmax(tg_output)
 
     def train_dependencies(self, sentences):
-        self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations, self.syntax_trainer)
+        self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations)
 
     def train_events(self, sentences):
-        self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.event_trainer, self.i2tg)
+        self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.i2tg)
 
-    def _train(self, sentences, transition_system, evaluate, relations, trainer, triggers = None):
+    def _train(self, sentences, transition_system, evaluate, relations, triggers = None):
         start_chunk = time.time()
         start_all = time.time()
         loss_chunk = 0
@@ -273,11 +283,8 @@ class ArcHybridParser:
         total_all = 0
         losses = []
         self.set_empty_vector()
+        
         for i, sentence in enumerate(sentences):
-            # initialize to zeros (TODO is this correct?)
-            self.prev_ev_op  = dy.inputTensor([0] * self.ev_op_out_size)
-            self.prev_ev_lbl = dy.inputTensor([0] * self.ev_lbl_out_size)
-            self.prev_tg_lbl = dy.inputTensor([0] * self.tg_lbl_out_size)
             if i != 0 and i % 100 == 0:
                 end = time.time()
                 print(f'count: {i}\tloss: {loss_chunk/total_chunk:.4f}\ttime: {end-start_chunk:,.2f} secs')
@@ -285,6 +292,8 @@ class ArcHybridParser:
                 loss_chunk = 0
                 total_chunk = 0
             if len(sentence) > 2:
+                for e in sentence:
+                    e.children = []
                 # assign embedding to each word
                 features = self.extract_features(sentence, drop_word=True)
                 # initialize sentence parse
@@ -341,45 +350,45 @@ class ArcHybridParser:
                                 if t[1] == relation and t[2] == label:
                                     correct_transitions.append(t)
 
-                        # # select transition
-                        # best_legal = max(legal_transitions, key=attrgetter('score'))
-                        # best_correct = max(correct_transitions, key=attrgetter('score'))
+                        # select transition
+                        best_legal = max(legal_transitions, key=attrgetter('score'))
+                        best_correct = max(correct_transitions, key=attrgetter('score'))
 
-                        # # select transition
-                        # best_legal_op = max(legal_transitions, key=attrgetter('score_op'))
+                        # select transition
+                        best_legal_op = max(legal_transitions, key=attrgetter('score_op'))
 
-                        # # accumulate losses
-                        # loss = 1 - best_correct.score_op + best_legal_op.score_op
-                        # dy_loss = 1 - best_correct.dy_score_op + best_legal_op.dy_score_op
+                        # accumulate losses
+                        loss = 1 - best_correct.score_op + best_legal_op.score_op
+                        dy_loss = 1 - best_correct.dy_score_op + best_legal_op.dy_score_op
 
-                        # if best_legal_op != best_correct and loss > 0:
-                        #     losses.append(dy_loss)
-                        #     loss_chunk += loss
-                        #     loss_all += loss
+                        if best_legal_op != best_correct and loss > 0:
+                            losses.append(dy_loss)
+                            loss_chunk += loss
+                            loss_all += loss
 
-                        # # select transition
-                        # best_legal_lbl = max(legal_transitions, key=attrgetter('score_lbl'))
+                        # select transition
+                        best_legal_lbl = max(legal_transitions, key=attrgetter('score_lbl'))
 
-                        # # accumulate losses
-                        # loss = 1 - best_correct.score_lbl + best_legal_lbl.score_lbl
-                        # dy_loss = 1 - best_correct.dy_score_lbl + best_legal_lbl.dy_score_lbl
+                        # accumulate losses
+                        loss = 1 - best_correct.score_lbl + best_legal_lbl.score_lbl
+                        dy_loss = 1 - best_correct.dy_score_lbl + best_legal_lbl.dy_score_lbl
 
-                        # if best_legal_lbl != best_correct and loss > 0:
-                        #     losses.append(dy_loss)
-                        #     loss_chunk += loss
-                        #     loss_all += loss
+                        if best_legal_lbl != best_correct and loss > 0:
+                            losses.append(dy_loss)
+                            loss_chunk += loss
+                            loss_all += loss
 
-                        # # select transition
-                        # best_legal_tg = max(legal_transitions, key=attrgetter('score_tg'))
+                        # select transition
+                        best_legal_tg = max(legal_transitions, key=attrgetter('score_tg'))
 
-                        # # accumulate losses
-                        # loss = 1 - best_correct.score_tg + best_legal_tg.score_tg
-                        # dy_loss = 1 - best_correct.dy_score_tg + best_legal_tg.dy_score_tg
+                        # accumulate losses
+                        loss = 1 - best_correct.score_tg + best_legal_tg.score_tg
+                        dy_loss = 1 - best_correct.dy_score_tg + best_legal_tg.dy_score_tg
 
-                        # if best_legal_tg != best_correct and loss > 0:
-                        #     losses.append(dy_loss)
-                        #     loss_chunk += loss
-                        #     loss_all += loss
+                        if best_legal_tg != best_correct and loss > 0:
+                            losses.append(dy_loss)
+                            loss_chunk += loss
+                            loss_all += loss
 
                     else:
                         if state.is_legal('shift'):
@@ -409,18 +418,18 @@ class ArcHybridParser:
                                 if t.op in ['shift', 'drop'] or t.label in state.stack[-1].relation:
                                     correct_transitions.append(t)
 
-                    # select transition
-                    best_legal = max(legal_transitions, key=attrgetter('score'))
-                    best_correct = max(correct_transitions, key=attrgetter('score'))
+                        # select transition
+                        best_legal = max(legal_transitions, key=attrgetter('score'))
+                        best_correct = max(correct_transitions, key=attrgetter('score'))
 
-                    # accumulate losses
-                    loss = 1 - best_correct.score + best_legal.score
-                    dy_loss = 1 - best_correct.dy_score + best_legal.dy_score
+                        # accumulate losses
+                        loss = 1 - best_correct.score + best_legal.score
+                        dy_loss = 1 - best_correct.dy_score + best_legal.dy_score
 
-                    if best_legal != best_correct and loss > 0:
-                        losses.append(dy_loss)
-                        loss_chunk += loss
-                        loss_all += loss
+                        if best_legal != best_correct and loss > 0:
+                            losses.append(dy_loss)
+                            loss_chunk += loss
+                            loss_all += loss
 
                     total_chunk += 1
                     total_all += 1
@@ -435,7 +444,7 @@ class ArcHybridParser:
                 loss = dy.esum(losses)
                 loss.scalar_value()
                 loss.backward()
-                trainer.update()
+                self.trainer.update()
                 dy.renew_cg()
                 self.set_empty_vector()
                 losses = []
@@ -445,7 +454,7 @@ class ArcHybridParser:
             loss = dy.esum(losses)
             loss.scalar_value()
             loss.backward()
-            trainer.update()
+            self.trainer.update()
             dy.renew_cg()
             self.set_empty_vector()
 
@@ -454,6 +463,8 @@ class ArcHybridParser:
         print(f'count: {i}\tloss: {loss_all/total_all:.4f}\ttime: {end-start_all:,.2f} secs')
 
     def parse_sentence(self, sentence):
+        for e in sentence:
+            e.children = []
         self.set_empty_vector()
         # assign embedding to each word
         features = self.extract_features(sentence)

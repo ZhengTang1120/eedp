@@ -5,7 +5,7 @@ from utils import *
 from parsers import ArcHybridParser
 import os
 
-def make_parser(args, word_count, words, tags, chars, entities=None, ev_rels=None, dep_rels=None):
+def make_parser(args, word_count, words, tags, chars, entities=None, ev_rels=None, dep_rels=None, pretrained=None):
     return ArcHybridParser(
         word_count, words, tags, chars, entities,
         dep_rels, ev_rels,
@@ -22,7 +22,8 @@ def make_parser(args, word_count, words, tags, chars, entities=None, ev_rels=Non
         args.ev_lbl_hidden_size,
         args.tg_lbl_hidden_size,
         args.alpha,
-        args.p_explore
+        args.p_explore,
+        pretrained
     )
 
 if __name__ == '__main__':
@@ -61,10 +62,12 @@ if __name__ == '__main__':
         sentences = read_conllx(args.depsfile, non_proj=False)
     if events and sentences:
         vocabularies = make_vocabularies2(sentences, events)
-        parser = make_parser(args, *vocabularies)
+        emb_matrix_pretrained = np.loadtxt("pubmedm.txt")
+        parser = make_parser(args, *vocabularies, pretrained=emb_matrix_pretrained)
     elif events:
         vocabularies = make_vocabularies3(events)
-        parser = make_parser(args, *vocabularies[:-1], ev_rels = vocabularies[-1])
+        emb_matrix_pretrained = np.loadtxt("pubmed.txt")
+        parser = make_parser(args, *vocabularies[:-1], ev_rels = vocabularies[-1], pretrained=emb_matrix_pretrained)
     elif sentences:
         vocabularies = make_vocabularies(sentences)
         parser = make_parser(args, *vocabularies[:-1], dep_rels = vocabularies[-1])
