@@ -7,7 +7,7 @@ from utils import *
 import json
 import itertools
 
-API = ProcessorsBaseAPI(port=8888)
+API = ProcessorsBaseAPI(hostname="localhost", port=8888)
 
 # brat mentions
 TextboundMention = namedtuple('TextboundMention', 'id label start end text')
@@ -24,10 +24,11 @@ def parse_annotations(annotations):
         if line.startswith('T'):
             [id, data, text] = line.split('\t')
             [label, start, end] = data.split(' ')
-            if start+end not in ann_dict:
-                ann_dict[start+end] = TextboundMention(id, [label], int(start), int(end), text)
-            else:
-                ann_dict[start+end].label.append(label)
+            # if start+end not in ann_dict:
+            #     ann_dict[start+end] = TextboundMention(id, [label], int(start), int(end), text)
+            # else:
+            #     ann_dict[start+end].label.append(label)
+            res.append(TextboundMention(id, label, int(start), int(end), text))
         elif line.startswith('E'):
             [id, data] = line.split('\t')
             [label_trigger, *args] = data.split(' ')
@@ -109,7 +110,6 @@ if __name__ == '__main__':
     es = 0
     for fname in glob.glob(os.path.join(args.datadir, '*.a1')):
         root = os.path.splitext(fname)[0]
-        # print (root)
         name = os.path.basename(root)
         
         txt = read(root + '.txt')
@@ -174,6 +174,9 @@ if __name__ == '__main__':
             eid, res = parse_event_tree(event_tree, {**proteins, **entities}, eid, sent_ann)
             events += res
         tids = [ent[0][0] for ent in entities.values()]
+        eids = [event[0] for event in events if event[1][0] not in ["Protein", "Entity"]]
+        eset = set()
+        elist = list()
         for id in entities:
             line = ""
             for e in entities[id][0][:-1]:
@@ -181,21 +184,65 @@ if __name__ == '__main__':
             line += entities[id][0][-1]
             t1.write(line+"\n")
         for event in events:
-            line = event[0]+"\t"+event[1][0]+":"+event[1][1]
-            tc = list()
-            for t in event[1][2:]:
-                for k in t:
-                    if "Theme" in k:
-                        line += " "+k+":"+t[k]
-                        tc.append(t[k])
-            for k in event[1][2:]:
-                if "Cause" in k:
-                    line += " Cause:"+k["Cause"]
-                    tc.append(k["Cause"])
-            invalid = list(set(tids) & set(tc))
-            if "Theme:" in line and not invalid:
-                t1.write(line+"\n") 
+            if event[1][0] not in ["Protein", "Entity"]:
+                line = event[0]+"\t"+event[1][0]+":"+event[1][1]
+                tc = list()
+                ec = list()
+                valid = True
+                for t in event[1][2:]:
+                    for k in t:
+                        if "Theme" in k:
+                            if t[k].startswith("E") and t[k] not in eids:
+                                continue
+                            elif "egulation" not in event[1][0] and t[k].startswith("E"):
+                                if t[k] in eids:
+                                    eids.remove(t[k])
+                                continue
+                            else:
+                                line += " "+k+":"+t[k]
+                                if t[k].startswith("E"):
+                                    ec.append(t[k])
+                                else:
+                                    tc.append(t[k])
+                if "egulation" in event[1][0]:
+                    for k in event[1][2:]:
+                        if "Cause" in k and k["Cause"] not in tids:
+                            if k["Cause"].startswith("E") and k["Cause"] not in eids:
+                                continue
+                            else:
+                                line += " Cause:"+k["Cause"]
+                                if k["Cause"].startswith("E"):
+                                    ec.append(k["Cause"])
+                                else:
+                                    tc.append(k["Cause"]) #?!
+                else:
+                    for k in event[1][2:]:
+                        if "Cause" in k and k["Cause"].startswith("E") and k["Cause"] in eids:
+                            eids.remove(k["Cause"])
+                a = list(set(tids) & set(tc))
+                if valid and len(a)!=0:
+                    valid = False
+                if "Theme:" in line and valid and line.split("\t")[-1] not in eset:
+                    elist.append((line, ec))
+                    # t1.write(line+"\n")
+                    eset.add(line.split("\t")[-1])
+                elif event[0] in eids:
+                    eids.remove(event[0])
+        f = len(elist)
+        while (f > 0):
+            f = len(elist)
+            temp = list()
+            for line, ec in elist:
+                if list(set(eids) & set(ec)) == ec:
+                    # t1.write(line+"\n")
+                    temp.append((line, ec))
+                    f -= 1
+                elif line.split("\t")[0] in eids:
+                    eids.remove(line.split("\t")[0])
+            elist = temp
+        for line, ec in elist:
+            t1.write(line+"\n")
         t1.close()
-    #     print ("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
-    #     os.system("./a2-evaluate.pl -g gold-sam/ -s "+root + '.a2.t1')
+    #     print ("./a2-evaluate.pl -g gold-dev/ -s "+root + '.a2.t1')
+    #     os.system("./a2-evaluate.pl -g gold-dev/ -s "+root + '.a2.t1')
     # print (es)

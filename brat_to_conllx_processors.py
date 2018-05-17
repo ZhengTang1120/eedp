@@ -40,8 +40,12 @@ def brat_to_conllx(text, annotations):
                 heads = list()
                 for rel, head, hlabel in get_relhead(annotations, starts, ends, tbm, i):
                     if head not in heads:
-                        rels.append(rel)
-                        heads.append(head)
+                        if head != i+1:
+                            rels.append(rel)
+                            heads.append(head)
+                    if len(heads) = 0:
+                        heads = [0]
+                        rels = ['root']
                 entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label[0], head=heads, deprel=rels)
                 conllx.append(entry)
         except Exception as e:
@@ -187,7 +191,7 @@ if __name__ == '__main__':
         print(f'reading {name}')
         txt = read(root + '.txt')
         a1 = read(root + '.a1')
-        a2 = read(root + '.a2')
+        a2 = read(root + '.a2.t1')
         annotations = f'{a1}\n{a2}'
         sentences += brat_to_conllx(txt, annotations)
 
