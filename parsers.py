@@ -230,7 +230,8 @@ class ArcHybridParser:
         lbl_hidden = dy.tanh(self.dep_lbl_hidden.expr() * input + self.dep_lbl_hidden_bias.expr())
         lbl_output = self.dep_lbl_output.expr() * lbl_hidden + self.dep_lbl_output_bias.expr()
         # return scores
-        return dy.softmax(op_output), dy.softmax(lbl_output)
+        # return dy.softmax(op_output), dy.softmax(lbl_output)
+        return op_output, lbl_output
 
     def evaluate_events(self, stack, buffer, features):
         # construct input vector
@@ -241,20 +242,23 @@ class ArcHybridParser:
         # prev_* refers to the previous decisions
         input = dy.concatenate([b, s0, s1, s2, self.prev_ev_op, self.prev_ev_lbl, self.prev_tg_lbl])
         # predict action
-        op_hidden = dy.rectify(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
-        # op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
+        # op_hidden = dy.rectify(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
+        op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
         op_output = self.ev_op_output.expr() * op_hidden + self.ev_op_output_bias.expr()
-        self.prev_ev_op = dy.softmax(op_output)
+        # self.prev_ev_op = dy.softmax(op_output)
+        self.prev_ev_op = op_output
         # predict label
-        lbl_hidden = dy.rectify(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
-        # lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
+        # lbl_hidden = dy.rectify(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
+        lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
         lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
-        self.prev_ev_lbl = dy.softmax(lbl_output)
+        # self.prev_ev_lbl = dy.softmax(lbl_output)
+        self.prev_ev_lbl = lbl_output
         # predict trigger label
-        tg_hidden = dy.rectify(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
-        # tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
+        # tg_hidden = dy.rectify(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
+        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
         tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
-        self.prev_tg_lbl = dy.softmax(tg_output)
+        # self.prev_tg_lbl = dy.softmax(tg_output)
+        self.prev_tg_lbl = tg_output
         # return scores
         return self.prev_ev_op, self.prev_ev_lbl, self.prev_tg_lbl
 
@@ -410,35 +414,33 @@ class ArcHybridParser:
                                     correct_transitions.append(t)
 
                     # select transition
-                    best_legal = max(legal_transitions, key=attrgetter('score'))
+                    # best_legal = max(legal_transitions, key=attrgetter('score'))
                     best_correct = max(correct_transitions, key=attrgetter('score'))
-
-                    # accumulate losses
-                    loss = 1 - best_correct.score + best_legal.score
-                    dy_loss = 1 - best_correct.dy_score + best_legal.dy_score
-
-                    if best_legal != best_correct and loss > 0:
-                        losses.append(dy_loss)
-                        loss_chunk += loss
-                        loss_all += loss
-
-                    total_chunk += 1
-                    total_all += 1
+                    i_correct = legal_transitions.index(best_correct)
+                    legal_scores = dy.concatenate([t.dy_score for t in legal_transitions])
+                    loss = dy.hinge(legal_scores, i_correct)
+                    # loss = dy.pickneglogsoftmax(legal_scores, i_correct)
+                    losses.append(loss)
 
                     # perform transition
                     # note that we compare against loss + 1, to perform aggressive exploration
-                    selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
+                    # selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
+                    selected = best_correct
                     state.perform_transition(selected.op, selected.label, selected.trigger)
 
             # process losses in chunks
             if len(losses) > 50:
                 loss = dy.esum(losses)
-                loss.scalar_value()
+                l = loss.scalar_value()
                 loss.backward()
                 trainer.update()
                 dy.renew_cg()
                 self.set_empty_vector()
                 losses = []
+                loss_chunk += l
+                loss_all += l
+                total_chunk += 1
+                total_all += 1
 
         # consider any remaining losses
         if len(losses) > 0:
