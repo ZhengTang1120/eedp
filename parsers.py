@@ -109,7 +109,7 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the transition to take next
             out_size = 3 # shift, left_arc, right_arc
-            self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 4))
+            self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 7))
             self.dep_op_hidden_bias = self.model.add_parameters((self.dep_op_hidden_size))
             self.dep_op_output      = self.model.add_parameters((out_size, self.dep_op_hidden_size))
             self.dep_op_output_bias = self.model.add_parameters((out_size))
@@ -117,7 +117,7 @@ class ArcHybridParser:
             # # fully connected network with one hidden layer
             # # to predict the arc label
             out_size = 1 + len(self.dep_relations) * 2
-            self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 4))
+            self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 7))
             self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
             self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
             self.dep_lbl_output_bias = self.model.add_parameters((out_size))
@@ -210,12 +210,21 @@ class ArcHybridParser:
         return outputs
 
     def evaluate_dependencies(self, stack, buffer, features):
+        def get_children_avg(children):
+            if len(children) > 0:
+                return dy.average([features[c] for c in children])
+            else:
+                return self.empty
+
         # construct input vector
         b = features[buffer[0].id] if len(buffer) > 0 else self.empty
         s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
         s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
         s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
-        input = dy.concatenate([b, s0, s1, s2])
+        s0c = get_children_avg(stack[-1].children) if len(stack) > 0 else self.empty
+        s1c = get_children_avg(stack[-2].children) if len(stack) > 1 else self.empty
+        s2c = get_children_avg(stack[-3].children) if len(stack) > 2 else self.empty
+        input = dy.concatenate([b, s0, s1, s2, s0c, s1c, s2c])
         # predict action
         op_hidden = dy.tanh(self.dep_op_hidden.expr() * input + self.dep_op_hidden_bias.expr())
         op_output = self.dep_op_output.expr() * op_hidden + self.dep_op_output_bias.expr()
@@ -227,11 +236,34 @@ class ArcHybridParser:
 
     def evaluate_events(self, stack, buffer, features):
 
+        # def get_children_weighted_sum(root, i):
+        #     if root.children:
+        #         res = dy.esum([features[c.id] for c in root.children])
+        #     else:
+        #         res = self.empty
+        #     if i < 2:
+        #         for c in root.children:
+        #             res += get_children_weighted_sum(c, i+1)/2
+        #     return res
+
+        # def get_children(root, i):
+        #     res = [c for c in root.children]
+        #     if i<2:
+        #         for c in root.children:
+        #             res += get_children(c, i+1)
+        #     return res
+
+        # def get_children_avg(root):
+        #     if get_children(root, 0):
+        #         return get_children_weighted_sum(root, 0)/len(get_children(root, 0))
+        #     else:
+        #         return self.empty
         def get_children_avg(children):
             if len(children) > 0:
                 return dy.average([features[c] for c in children])
             else:
                 return self.empty
+
 
         # construct input vector
         b = features[buffer[0].id] if len(buffer) > 0 else self.empty
@@ -269,6 +301,7 @@ class ArcHybridParser:
         total_all = 0
         losses = []
         self.set_empty_vector()
+        
         for i, sentence in enumerate(sentences):
             if i != 0 and i % 100 == 0:
                 end = time.time()
@@ -447,7 +480,7 @@ class ArcHybridParser:
         print('\nend of epoch')
         print(f'count: {i}\tloss: {loss_all/total_all:.4f}\ttime: {end-start_all:,.2f} secs')
 
-    def parse_sentence(self, sentence):
+    def parse_event(self, sentence):
         for e in sentence:
             e.children = []
         self.set_empty_vector()
@@ -511,5 +544,44 @@ class ArcHybridParser:
             # print ("----------------------------")
             # perform transition
             state.perform_transition(best_act, best_lbl, best_tg)
+        dy.renew_cg()
+        return sentence
+
+    def parse_sentence(self, sentence):
+        self.set_empty_vector()
+        # assign embedding to each word
+        features = self.extract_features(sentence)
+        # initialize sentence parse
+        state = ArcHybrid(sentence)
+        # parse sentence
+        while not state.is_terminal():
+            op_scores, lbl_scores = self.evaluate_dependencies(state.stack, state.buffer, features)
+            # get numpy arrays
+            op_scores = op_scores.npvalue()
+            lbl_scores = lbl_scores.npvalue()
+            # select transition
+            left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.dep_relations))
+            right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.dep_relations))
+
+            # collect all legal transitions
+            transitions = []
+            if state.is_legal('shift'):
+                t = ('shift', None, op_scores[state.t2i['shift']] + lbl_scores[0])
+                transitions.append(t)
+            if state.is_legal('left_arc'):
+                t = ('left_arc', left_lbl, op_scores[state.t2i['left_arc']] + left_lbl_score)
+                transitions.append(t)
+            if state.is_legal('right_arc'):
+                t = ('right_arc', right_lbl, op_scores[state.t2i['right_arc']] + right_lbl_score)
+                transitions.append(t)
+            if state.is_legal('drop'):
+                t = ('drop', None, op_scores[state.t2i['drop']] + lbl_scores[0])
+                transitions.append(t)
+
+            # select best legal transition
+            best_act, best_lbl, best_score = max(transitions, key=itemgetter(2))
+
+            # perform transition
+            state.perform_transition(best_act, best_lbl)
         dy.renew_cg()
         return sentence
