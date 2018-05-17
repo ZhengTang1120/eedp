@@ -22,8 +22,7 @@ def make_parser(args, word_count, words, tags, chars, entities=None, ev_rels=Non
         args.ev_lbl_hidden_size,
         args.tg_lbl_hidden_size,
         args.alpha,
-        args.p_explore,
-        args.lr
+        args.p_explore
     )
 
 if __name__ == '__main__':
@@ -59,8 +58,10 @@ if __name__ == '__main__':
     events = sentences = None
     if args.evsfile:
         events = read_conllx(args.evsfile)
+        events = sorted(events, key=lambda sentence: len(sentence))
     if args.depsfile:
         sentences = read_conllx(args.depsfile, non_proj=False)
+        sentences = sorted(sentences, key=lambda sentence: len(sentence))
     if events and sentences:
         vocabularies = make_vocabularies2(sentences, events)
         parser = make_parser(args, *vocabularies)
@@ -73,15 +74,15 @@ if __name__ == '__main__':
     else:
         print("Must have at least one file to parse!")
         exit()
-
+        
     print('training ...')
     for epoch in range(args.epochs):
         print('epoch', epoch + 1)
         if args.depsfile:
-            random.shuffle(sentences)
+            # random.shuffle(sentences)
             parser.train_dependencies(sentences)
         if args.evsfile:
-            random.shuffle(events)
+            # random.shuffle(events)
             parser.train_events(events)
         name = f'{args.outdir}/parser{epoch+1:03}'
         print('saving', name)

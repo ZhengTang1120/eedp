@@ -26,7 +26,7 @@ class ArcHybridParser:
             dep_op_hidden_size, dep_lbl_hidden_size,
             ev_op_hidden_size, ev_lbl_hidden_size,
             tg_lbl_hidden_size,
-            alpha, p_explore, lr):
+            alpha, p_explore):
 
         # counts used for word dropout
         self.word_count = word_count
@@ -64,11 +64,9 @@ class ArcHybridParser:
         self.alpha = alpha
         self.p_explore = p_explore
         self.entities = entities
-        self.lr = lr
 
         self.model = dy.Model()
         self.trainer = dy.AdamTrainer(self.model)
-        self.trainer.learning_rate = self.lr
 
         # words and tags, entities embeddings
         self.wlookup = self.model.add_lookup_parameters((len(self.i2w), self.w_embed_size))
@@ -158,7 +156,7 @@ class ArcHybridParser:
             self.dep_op_hidden_size, self.dep_lbl_hidden_size,
             self.ev_op_hidden_size, self.ev_lbl_hidden_size,
             self.tg_lbl_hidden_size,
-            self.alpha, self.p_explore, self.lr
+            self.alpha, self.p_explore
         )
         # save model
         self.model.save(f'{name}.model')
