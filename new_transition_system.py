@@ -54,6 +54,7 @@ class CustomTransitionSystem:
             return self.count_arcs(s0, s1) == 0
 
         elif transition == 'left_attach':
+            return False
             # there must be at least two things in the stack
             # s1 can't be root
             # s0 and s1 shouldn't be part of any arcs
@@ -66,6 +67,7 @@ class CustomTransitionSystem:
             return self.count_arcs(s0, s1) == 0 and self.count_arcs(s1, s0) == 0
 
         elif transition == 'right_attach':
+            return False
             # there must be at least two things in the stack
             # s0 and s1 shouldn't be part of any arcs
             if len(self.stack) < 2: # there must be at least 2 things in the stack
@@ -75,6 +77,7 @@ class CustomTransitionSystem:
             return self.count_arcs(s0, s1) == 0 and self.count_arcs(s1, s0) == 0
 
         elif transition == 'swap':
+            return False
             # can't swap things that have already been swapped
             return len(self.stack) >= 2 and 0 < self.stack[-2].id < self.stack[-1].id
 
