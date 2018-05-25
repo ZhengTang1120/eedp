@@ -30,9 +30,9 @@ class ArcHybridParser:
         self.pretrained = pretrained
         if self.pretrained:
             if dep_relations:
-                self.pretrained = np.loadtxt("pubmedm.txt")
+                self.embeddings = np.loadtxt("pubmedm.txt")
             else:
-                self.pretrained = np.loadtxt("pubmed.txt")
+                self.embeddings = np.loadtxt("pubmed.txt")
 
         # counts used for word dropout
         self.word_count = word_count
@@ -78,8 +78,8 @@ class ArcHybridParser:
         self.wlookup = self.model.add_lookup_parameters((len(self.i2w), self.w_embed_size))
         if self.pretrained:
             for i in range(len(self.i2w)):
-                if np.any(self.pretrained[i]):
-                    self.wlookup.init_row(i, self.pretrained[i])
+                if np.any(self.embeddings[i]):
+                    self.wlookup.init_row(i, self.embeddings[i])
         self.tlookup = self.model.add_lookup_parameters((len(self.i2t), self.t_embed_size))
         self.clookup = self.model.add_lookup_parameters((len(self.i2c), self.c_embed_size))
         self.elookup = self.model.add_lookup_parameters((len(self.i2e), self.e_embed_size))
