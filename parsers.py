@@ -26,7 +26,13 @@ class ArcHybridParser:
             dep_op_hidden_size, dep_lbl_hidden_size,
             ev_op_hidden_size, ev_lbl_hidden_size,
             tg_lbl_hidden_size,
-            alpha, p_explore):
+            alpha, p_explore, pretrained):
+        self.pretrained = pretrained
+        if self.pretrained:
+            if dep_relations:
+                self.pretrained = np.loadtxt("pubmedm.txt")
+            else:
+                self.pretrained = np.loadtxt("pubmed.txt")
 
         # counts used for word dropout
         self.word_count = word_count
@@ -70,6 +76,10 @@ class ArcHybridParser:
 
         # words and tags, entities embeddings
         self.wlookup = self.model.add_lookup_parameters((len(self.i2w), self.w_embed_size))
+        if self.pretrained:
+            for i in range(len(self.i2w)):
+                if np.any(self.pretrained[i]):
+                    self.wlookup.init_row(i, self.pretrained[i])
         self.tlookup = self.model.add_lookup_parameters((len(self.i2t), self.t_embed_size))
         self.clookup = self.model.add_lookup_parameters((len(self.i2c), self.c_embed_size))
         self.elookup = self.model.add_lookup_parameters((len(self.i2e), self.e_embed_size))
@@ -156,7 +166,7 @@ class ArcHybridParser:
             self.dep_op_hidden_size, self.dep_lbl_hidden_size,
             self.ev_op_hidden_size, self.ev_lbl_hidden_size,
             self.tg_lbl_hidden_size,
-            self.alpha, self.p_explore
+            self.alpha, self.p_explore, self.pretrained
         )
         # save model
         self.model.save(f'{name}.model')
