@@ -15,7 +15,7 @@ from new_transition_system import CustomTransitionSystem
 from copy import deepcopy
 
 Transition = namedtuple('Transition', 'op label trigger score dy_score')
-new_Transition = namedtuple('Transition', 'op label trigger score_op, score_lbl, score_tg, score, dy_score_op, dy_score_lbl, dy_score_tg, dy_score')
+new_Transition = namedtuple('Transition', 'op label trigger score dy_score')
 
 class ArcHybridParser:
 
@@ -26,10 +26,12 @@ class ArcHybridParser:
             dep_op_hidden_size, dep_lbl_hidden_size,
             ev_op_hidden_size, ev_lbl_hidden_size,
             tg_lbl_hidden_size,
-            alpha, p_explore, pretrained):
+            alpha, p_explore):
 
-        self.pretrained = pretrained
-
+        if dep_relations:
+            self.pretrained = np.loadtxt("pubmedm.txt")
+        else:
+            self.pretrained = np.loadtxt("pubmed.txt")
         # counts used for word dropout
         self.word_count = word_count
 
@@ -181,10 +183,10 @@ class ArcHybridParser:
         w_pad = self.wlookup[self.w2i['*pad*']]
         t_pad = self.tlookup[self.t2i['*pad*']]
         c_pad = self.clookup[self.c2i['*pad*']]
-        c_pad = self.char_to_lstm.expr() * c_pad + self.char_to_lstm_bias.expr()
+        c_pad = self.char_to_lstm * c_pad + self.char_to_lstm_bias
         e_pad = self.elookup[self.e2i['*pad*']]
         v_pad = dy.concatenate([w_pad, t_pad, c_pad, e_pad])
-        i_vec = self.word_to_lstm.expr() * v_pad + self.word_to_lstm_bias.expr()
+        i_vec = self.word_to_lstm * v_pad + self.word_to_lstm_bias
         self.empty = dy.tanh(i_vec)
 
     def extract_features(self, sentence, drop_word=False):
@@ -231,13 +233,13 @@ class ArcHybridParser:
         s2c = get_children_avg(stack[-3].children) if len(stack) > 2 else self.empty
         input = dy.concatenate([b, s0, s1, s2, s0c, s1c, s2c])
         # predict action
-        op_hidden = dy.tanh(self.dep_op_hidden.expr() * input + self.dep_op_hidden_bias.expr())
-        op_output = self.dep_op_output.expr() * op_hidden + self.dep_op_output_bias.expr()
+        op_hidden = dy.tanh(self.dep_op_hidden * input + self.dep_op_hidden_bias)
+        op_output = self.dep_op_output * op_hidden + self.dep_op_output_bias
         # predict label
-        lbl_hidden = dy.tanh(self.dep_lbl_hidden.expr() * input + self.dep_lbl_hidden_bias.expr())
-        lbl_output = self.dep_lbl_output.expr() * lbl_hidden + self.dep_lbl_output_bias.expr()
+        lbl_hidden = dy.tanh(self.dep_lbl_hidden * input + self.dep_lbl_hidden_bias)
+        lbl_output = self.dep_lbl_output * lbl_hidden + self.dep_lbl_output_bias
         # return scores
-        return dy.softmax(op_output), dy.softmax(lbl_output)
+        return op_output, lbl_output
 
     def evaluate_events(self, stack, buffer, features):
 
@@ -246,6 +248,7 @@ class ArcHybridParser:
                 return dy.average([features[c] for c in children])
             else:
                 return self.empty
+
 
         # construct input vector
         b = features[buffer[0].id] if len(buffer) > 0 else self.empty
@@ -257,16 +260,16 @@ class ArcHybridParser:
         s2c = get_children_avg(stack[-3].children) if len(stack) > 2 else self.empty
         input = dy.concatenate([b, s0, s1, s2, s0c, s1c, s2c])
         # predict action
-        op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
-        op_output = self.ev_op_output.expr() * op_hidden + self.ev_op_output_bias.expr()
+        op_hidden = dy.tanh(self.ev_op_hidden * input + self.ev_op_hidden_bias)
+        op_output = self.ev_op_output * op_hidden + self.ev_op_output_bias
         # predict label
-        lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
-        lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
+        lbl_hidden = dy.tanh(self.ev_lbl_hidden * input + self.ev_lbl_hidden_bias)
+        lbl_output = self.ev_lbl_output * lbl_hidden + self.ev_lbl_output_bias
         # predict trigger label
-        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
-        tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
+        tg_hidden = dy.tanh(self.tg_lbl_hidden * input + self.tg_lbl_hidden_bias)
+        tg_output = self.tg_lbl_output * tg_hidden + self.tg_lbl_output_bias
         # return scores
-        return dy.softmax(op_output), dy.softmax(lbl_output), dy.softmax(tg_output)
+        return op_output, lbl_output, tg_output
 
     def train_dependencies(self, sentences):
         self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations)
@@ -321,25 +324,25 @@ class ArcHybridParser:
                                 for j, tg in enumerate(triggers[1:], start=2):
                                     if (hasattr(state.buffer[0], 'is_parent') and state.buffer[0].is_parent and j == 1):
                                         continue
-                                    t = new_Transition(lt, None, tg, np_op_scores[ix], np_lbl_scores[0], np_tg_scores[j], np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix], dy_lbl_scores[0], dy_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
+                                    t = new_Transition(lt, None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
                                     legal_transitions.append(t)
                             if lt == "drop":
-                                t = new_Transition(lt, None, "O", np_op_scores[ix], np_lbl_scores[0], np_tg_scores[1], np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[1], dy_op_scores[ix], dy_lbl_scores[0], dy_tg_scores[1], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
+                                t = new_Transition(lt, None, "O", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[1], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
                                 legal_transitions.append(t)
-                                t = new_Transition(lt, None, "Protein", np_op_scores[ix], np_lbl_scores[0], np_tg_scores[4], np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[4], dy_op_scores[ix], dy_lbl_scores[0], dy_tg_scores[4], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[4])
+                                t = new_Transition(lt, None, "Protein", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[4], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[4])
                                 legal_transitions.append(t)
                             if lt in ['left_reduce', 'left_attach']:
                                 for j, r in enumerate(relations):
                                     k = 1 + 2* j
-                                    t = new_Transition(lt, r, None, np_op_scores[ix], np_lbl_scores[k], np_tg_scores[0], np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix], dy_lbl_scores[k], dy_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
+                                    t = new_Transition(lt, r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
                                     legal_transitions.append(t)
                             if lt in ['right_reduce', 'right_attach']:
                                 for j, r in enumerate(relations):
                                     k = 2 + 2 * j
-                                    t = new_Transition(lt, r, None, np_op_scores[ix], np_lbl_scores[k], np_tg_scores[0], np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix], dy_lbl_scores[k], dy_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
+                                    t = new_Transition(lt, r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
                                     legal_transitions.append(t)
                             if lt == "swap":
-                                t = new_Transition(lt, None, None, np_op_scores[ix], np_lbl_scores[0], np_tg_scores[0], np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[0], dy_op_scores[ix], dy_lbl_scores[0], dy_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[0])
+                                t = new_Transition(lt, None, None, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[0])
                                 legal_transitions.append(t)
                         # collect all correct transitions
                         correct_transitions = []
@@ -349,46 +352,6 @@ class ArcHybridParser:
                                 label = state.get_token_label_for_transition(t[0])
                                 if t[1] == relation and t[2] == label:
                                     correct_transitions.append(t)
-
-                        # select transition
-                        best_legal = max(legal_transitions, key=attrgetter('score'))
-                        best_correct = max(correct_transitions, key=attrgetter('score'))
-
-                        # select transition
-                        best_legal_op = max(legal_transitions, key=attrgetter('score_op'))
-
-                        # accumulate losses
-                        loss = 1 - best_correct.score_op + best_legal_op.score_op
-                        dy_loss = 1 - best_correct.dy_score_op + best_legal_op.dy_score_op
-
-                        if best_legal_op != best_correct and loss > 0:
-                            losses.append(dy_loss)
-                            loss_chunk += loss
-                            loss_all += loss
-
-                        # select transition
-                        best_legal_lbl = max(legal_transitions, key=attrgetter('score_lbl'))
-
-                        # accumulate losses
-                        loss = 1 - best_correct.score_lbl + best_legal_lbl.score_lbl
-                        dy_loss = 1 - best_correct.dy_score_lbl + best_legal_lbl.dy_score_lbl
-
-                        if best_legal_lbl != best_correct and loss > 0:
-                            losses.append(dy_loss)
-                            loss_chunk += loss
-                            loss_all += loss
-
-                        # select transition
-                        best_legal_tg = max(legal_transitions, key=attrgetter('score_tg'))
-
-                        # accumulate losses
-                        loss = 1 - best_correct.score_tg + best_legal_tg.score_tg
-                        dy_loss = 1 - best_correct.dy_score_tg + best_legal_tg.dy_score_tg
-
-                        if best_legal_tg != best_correct and loss > 0:
-                            losses.append(dy_loss)
-                            loss_chunk += loss
-                            loss_all += loss
 
                     else:
                         if state.is_legal('shift'):
@@ -418,36 +381,32 @@ class ArcHybridParser:
                                 if t.op in ['shift', 'drop'] or t.label in state.stack[-1].relation:
                                     correct_transitions.append(t)
 
-                        # select transition
-                        best_legal = max(legal_transitions, key=attrgetter('score'))
-                        best_correct = max(correct_transitions, key=attrgetter('score'))
+                    # select transition
+                    best_correct = max(correct_transitions, key=attrgetter('score'))
 
-                        # accumulate losses
-                        loss = 1 - best_correct.score + best_legal.score
-                        dy_loss = 1 - best_correct.dy_score + best_legal.dy_score
-
-                        if best_legal != best_correct and loss > 0:
-                            losses.append(dy_loss)
-                            loss_chunk += loss
-                            loss_all += loss
-
-                    total_chunk += 1
-                    total_all += 1
+                    i_correct = legal_transitions.index(best_correct)
+                    legal_scores = dy.concatenate([t.dy_score for t in legal_transitions])
+                    loss = dy.hinge(legal_scores, i_correct)
+                    # loss = dy.pickneglogsoftmax(legal_scores, i_correct)
+                    losses.append(loss)
 
                     # perform transition
-                    # note that we compare against loss + 1, to perform aggressive exploration
-                    selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
+                    selected = best_correct
                     state.perform_transition(selected.op, selected.label, selected.trigger)
 
             # process losses in chunks
             if len(losses) > 50:
                 loss = dy.esum(losses)
-                loss.scalar_value()
+                l = loss.scalar_value()
                 loss.backward()
                 self.trainer.update()
                 dy.renew_cg()
                 self.set_empty_vector()
                 losses = []
+                loss_chunk += l
+                loss_all += l
+                total_chunk += 1
+                total_all += 1
 
         # consider any remaining losses
         if len(losses) > 0:
@@ -462,7 +421,7 @@ class ArcHybridParser:
         print('\nend of epoch')
         print(f'count: {i}\tloss: {loss_all/total_all:.4f}\ttime: {end-start_all:,.2f} secs')
 
-    def parse_sentence(self, sentence):
+    def parse_event(self, sentence):
         for e in sentence:
             e.children = []
         self.set_empty_vector()
@@ -526,5 +485,44 @@ class ArcHybridParser:
             # print ("----------------------------")
             # perform transition
             state.perform_transition(best_act, best_lbl, best_tg)
+        dy.renew_cg()
+        return sentence
+
+    def parse_sentence(self, sentence):
+        self.set_empty_vector()
+        # assign embedding to each word
+        features = self.extract_features(sentence)
+        # initialize sentence parse
+        state = ArcHybrid(sentence)
+        # parse sentence
+        while not state.is_terminal():
+            op_scores, lbl_scores = self.evaluate_dependencies(state.stack, state.buffer, features)
+            # get numpy arrays
+            op_scores = op_scores.npvalue()
+            lbl_scores = lbl_scores.npvalue()
+            # select transition
+            left_lbl_score, left_lbl = max(zip(lbl_scores[1::2], self.dep_relations))
+            right_lbl_score, right_lbl = max(zip(lbl_scores[2::2], self.dep_relations))
+
+            # collect all legal transitions
+            transitions = []
+            if state.is_legal('shift'):
+                t = ('shift', None, op_scores[state.t2i['shift']] + lbl_scores[0])
+                transitions.append(t)
+            if state.is_legal('left_arc'):
+                t = ('left_arc', left_lbl, op_scores[state.t2i['left_arc']] + left_lbl_score)
+                transitions.append(t)
+            if state.is_legal('right_arc'):
+                t = ('right_arc', right_lbl, op_scores[state.t2i['right_arc']] + right_lbl_score)
+                transitions.append(t)
+            if state.is_legal('drop'):
+                t = ('drop', None, op_scores[state.t2i['drop']] + lbl_scores[0])
+                transitions.append(t)
+
+            # select best legal transition
+            best_act, best_lbl, best_score = max(transitions, key=itemgetter(2))
+
+            # perform transition
+            state.perform_transition(best_act, best_lbl)
         dy.renew_cg()
         return sentence

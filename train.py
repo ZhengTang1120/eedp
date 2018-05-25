@@ -22,8 +22,7 @@ def make_parser(args, word_count, words, tags, chars, entities=None, ev_rels=Non
         args.ev_lbl_hidden_size,
         args.tg_lbl_hidden_size,
         args.alpha,
-        args.p_explore,
-        pretrained
+        args.p_explore
     )
 
 if __name__ == '__main__':
@@ -62,12 +61,12 @@ if __name__ == '__main__':
         sentences = read_conllx(args.depsfile, non_proj=False)
     if events and sentences:
         vocabularies = make_vocabularies2(sentences, events)
-        emb_matrix_pretrained = np.loadtxt("pubmedm.txt")
-        parser = make_parser(args, *vocabularies, pretrained=emb_matrix_pretrained)
+        # emb_matrix_pretrained = np.loadtxt("pubmedm.txt")
+        parser = make_parser(args, *vocabularies)
     elif events:
         vocabularies = make_vocabularies3(events)
-        emb_matrix_pretrained = np.loadtxt("pubmed.txt")
-        parser = make_parser(args, *vocabularies[:-1], ev_rels = vocabularies[-1], pretrained=emb_matrix_pretrained)
+        # emb_matrix_pretrained = np.loadtxt("pubmed.txt")
+        parser = make_parser(args, *vocabularies[:-1], ev_rels = vocabularies[-1])
     elif sentences:
         vocabularies = make_vocabularies(sentences)
         parser = make_parser(args, *vocabularies[:-1], dep_rels = vocabularies[-1])
