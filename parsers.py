@@ -119,7 +119,7 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the transition to take next
             out_size = 3 # shift, left_arc, right_arc
-            self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 7))
+            self.dep_op_hidden      = self.model.add_parameters((self.dep_op_hidden_size, self.lstm_hidden_size * 4))
             self.dep_op_hidden_bias = self.model.add_parameters((self.dep_op_hidden_size))
             self.dep_op_output      = self.model.add_parameters((out_size, self.dep_op_hidden_size))
             self.dep_op_output_bias = self.model.add_parameters((out_size))
@@ -127,7 +127,7 @@ class ArcHybridParser:
             # # fully connected network with one hidden layer
             # # to predict the arc label
             out_size = 1 + len(self.dep_relations) * 2
-            self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 7))
+            self.dep_lbl_hidden      = self.model.add_parameters((self.dep_lbl_hidden_size, self.lstm_hidden_size * 4))
             self.dep_lbl_hidden_bias = self.model.add_parameters((self.dep_lbl_hidden_size))
             self.dep_lbl_output      = self.model.add_parameters((out_size, self.dep_lbl_hidden_size))
             self.dep_lbl_output_bias = self.model.add_parameters((out_size))
@@ -135,7 +135,7 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the transition to take next
             out_size = 7 # shift, left_reduce, right_reduce, left_attach, right_attach, swap, drop
-            self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.lstm_hidden_size * 7))
+            self.ev_op_hidden      = self.model.add_parameters((self.ev_op_hidden_size, self.lstm_hidden_size * 4))
             self.ev_op_hidden_bias = self.model.add_parameters((self.ev_op_hidden_size))
             self.ev_op_output      = self.model.add_parameters((out_size, self.ev_op_hidden_size))
             self.ev_op_output_bias = self.model.add_parameters((out_size))
@@ -143,7 +143,7 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the arc label
             out_size = 1 + len(self.ev_relations) * 2
-            self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.lstm_hidden_size * 7))
+            self.ev_lbl_hidden      = self.model.add_parameters((self.ev_lbl_hidden_size, self.lstm_hidden_size * 4))
             self.ev_lbl_hidden_bias = self.model.add_parameters((self.ev_lbl_hidden_size))
             self.ev_lbl_output      = self.model.add_parameters((out_size, self.ev_lbl_hidden_size))
             self.ev_lbl_output_bias = self.model.add_parameters((out_size))
@@ -151,7 +151,7 @@ class ArcHybridParser:
             # fully connected network with one hidden layer
             # to predict the trigger label
             out_size = 1 + len(self.i2tg)
-            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 7))
+            self.tg_lbl_hidden      = self.model.add_parameters((self.tg_lbl_hidden_size, self.lstm_hidden_size * 4))
             self.tg_lbl_hidden_bias = self.model.add_parameters((self.tg_lbl_hidden_size))
             self.tg_lbl_output      = self.model.add_parameters((out_size, self.tg_lbl_hidden_size))
             self.tg_lbl_output_bias = self.model.add_parameters((out_size))
@@ -231,10 +231,7 @@ class ArcHybridParser:
         s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
         s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
         s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
-        s0c = get_children_avg(stack[-1].children) if len(stack) > 0 else self.empty
-        s1c = get_children_avg(stack[-2].children) if len(stack) > 1 else self.empty
-        s2c = get_children_avg(stack[-3].children) if len(stack) > 2 else self.empty
-        input = dy.concatenate([b, s0, s1, s2, s0c, s1c, s2c])
+        input = dy.concatenate([b, s0, s1, s2])
         # predict action
         op_hidden = dy.tanh(self.dep_op_hidden * input + self.dep_op_hidden_bias)
         op_output = self.dep_op_output * op_hidden + self.dep_op_output_bias
@@ -258,10 +255,7 @@ class ArcHybridParser:
         s0 = features[stack[-1].id] if len(stack) > 0 else self.empty
         s1 = features[stack[-2].id] if len(stack) > 1 else self.empty
         s2 = features[stack[-3].id] if len(stack) > 2 else self.empty
-        s0c = get_children_avg(stack[-1].children) if len(stack) > 0 else self.empty
-        s1c = get_children_avg(stack[-2].children) if len(stack) > 1 else self.empty
-        s2c = get_children_avg(stack[-3].children) if len(stack) > 2 else self.empty
-        input = dy.concatenate([b, s0, s1, s2, s0c, s1c, s2c])
+        input = dy.concatenate([b, s0, s1, s2])
         # predict action
         op_hidden = dy.tanh(self.ev_op_hidden * input + self.ev_op_hidden_bias)
         op_output = self.ev_op_output * op_hidden + self.ev_op_output_bias
