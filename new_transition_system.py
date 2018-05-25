@@ -75,6 +75,7 @@ class CustomTransitionSystem:
             return self.count_arcs(s0, s1) == 0 and self.count_arcs(s1, s0) == 0
 
         elif transition == 'swap':
+            return False
             # can't swap things that have already been swapped
             return len(self.stack) >= 2 and 0 < self.stack[-2].id < self.stack[-1].id
 
