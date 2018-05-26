@@ -399,7 +399,7 @@ class ArcHybridParser:
                     loss.backward()
                     self.trainer.update()
                 except:
-                    continue
+                    pass
                 dy.renew_cg()
                 self.set_empty_vector()
                 losses = []
@@ -416,7 +416,7 @@ class ArcHybridParser:
                 loss.backward()
                 self.trainer.update()
             except:
-                continue
+                pass
             dy.renew_cg()
             self.set_empty_vector()
 
