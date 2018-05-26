@@ -393,10 +393,13 @@ class ArcHybridParser:
 
             # process losses in chunks
             if len(losses) > 50:
-                loss = dy.esum(losses)
-                l = loss.scalar_value()
-                loss.backward()
-                self.trainer.update()
+                try:
+                    loss = dy.esum(losses)
+                    l = loss.scalar_value()
+                    loss.backward()
+                    self.trainer.update()
+                except:
+                    continue
                 dy.renew_cg()
                 self.set_empty_vector()
                 losses = []
@@ -407,10 +410,13 @@ class ArcHybridParser:
 
         # consider any remaining losses
         if len(losses) > 0:
-            loss = dy.esum(losses)
-            loss.scalar_value()
-            loss.backward()
-            self.trainer.update()
+            try:
+                loss = dy.esum(losses)
+                loss.scalar_value()
+                loss.backward()
+                self.trainer.update()
+            except:
+                continue
             dy.renew_cg()
             self.set_empty_vector()
 
