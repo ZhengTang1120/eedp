@@ -72,7 +72,8 @@ class ArcHybridParser:
         self.entities = entities
 
         self.model = dy.Model()
-        self.trainer = dy.AdamTrainer(self.model)
+        self.trainer_dp = dy.AdamTrainer(self.model)
+        self.trainer_ee = dy.AdamTrainer(self.model)
 
         # words and tags, entities embeddings
         self.wlookup = self.model.add_lookup_parameters((len(self.i2w), self.w_embed_size))
@@ -275,12 +276,12 @@ class ArcHybridParser:
         return op_output, lbl_output, tg_output
 
     def train_dependencies(self, sentences):
-        self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations)
+        self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations, self.trainer_dp)
 
     def train_events(self, sentences):
-        self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.i2tg)
+        self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.trainer_ee self.i2tg)
 
-    def _train(self, sentences, transition_system, evaluate, relations, triggers = None):
+    def _train(self, sentences, transition_system, evaluate, relations, trainer, triggers = None):
         start_chunk = time.time()
         start_all = time.time()
         loss_chunk = 0
@@ -394,7 +395,10 @@ class ArcHybridParser:
                     losses.append(loss)
 
                     # perform transition
-                    selected = best_correct
+                    if trigger:
+                        selected = best_correct
+                    else:
+                        selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
                     state.perform_transition(selected.op, selected.label, selected.trigger)
 
             # process losses in chunks
@@ -403,7 +407,7 @@ class ArcHybridParser:
                     loss = dy.esum(losses)
                     l = loss.scalar_value()
                     loss.backward()
-                    self.trainer.update()
+                    trainer.update()
                 except:
                     pass
                 dy.renew_cg()
@@ -420,7 +424,7 @@ class ArcHybridParser:
                 loss = dy.esum(losses)
                 loss.scalar_value()
                 loss.backward()
-                self.trainer.update()
+                trainer.update()
             except:
                 pass
             dy.renew_cg()
