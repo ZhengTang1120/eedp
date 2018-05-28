@@ -276,12 +276,124 @@ class ArcHybridParser:
         return op_output, lbl_output, tg_output
 
     def train_dependencies(self, sentences):
-        self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations, self.trainer_dp)
+        # self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations, self.trainer_dp)
+        start_chunk = time.time()
+        start_all = time.time()
+        loss_chunk = 0
+        loss_all = 0
+        total_chunk = 0
+        total_all = 0
+        losses = []
+        self.set_empty_vector()
+
+        for i, sentence in enumerate(sentences):
+            if i != 0 and i % 100 == 0:
+                end = time.time()
+                print(f'count: {i}\tloss: {loss_chunk/total_chunk:.4f}\ttime: {end-start_chunk:,.2f} secs')
+                start_chunk = end
+                loss_chunk = 0
+                total_chunk = 0
+            if len(sentence) > 2:
+                for e in sentence:
+                    e.children = []
+                # assign embedding to each word
+                features = self.extract_features(sentence, drop_word=True)
+                # initialize sentence parse
+                state = ArcHybrid(sentence)
+                # parse sentence
+                while not state.is_terminal():
+                    outputs = self.evaluate_dependencies(state.stack, state.buffer, features)
+
+                    dy_op_scores, dy_lbl_scores = outputs
+
+                    # get scores in numpy arrays
+                    np_op_scores = dy_op_scores.npvalue()
+                    np_lbl_scores = dy_lbl_scores.npvalue()
+
+                    # collect all legal transitions
+                    legal_transitions = []
+                    if state.is_legal('shift'):
+                        ix = state.t2i['shift']
+                        t = Transition('shift', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
+                        legal_transitions.append(t)
+                    if state.is_legal('left_arc'):
+                        ix = state.t2i['left_arc']
+                        for j,r in enumerate(self.dep_relations):
+                            k = 1 + 2 * j
+                            t = Transition('left_arc', r, None, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                            legal_transitions.append(t)
+                    if state.is_legal('right_arc'):
+                        ix = state.t2i['right_arc']
+                        for j,r in enumerate(self.dep_relations):
+                            k = 2 + 2 * j
+                            t = Transition('right_arc', r, None, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                            legal_transitions.append(t)
+                    if state.is_legal('drop'):
+                        ix = state.t2i['drop']
+                        t = Transition('drop', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
+                        legal_transitions.append(t)
+                    # collect all correct transitions
+                    correct_transitions = []
+                    for t in legal_transitions:
+                        if state.is_correct(t):
+                            if t.op in ['shift', 'drop'] or t.label in state.stack[-1].relation:
+                                correct_transitions.append(t)
+
+                    
+                    # select transition
+                    best_legal = max(legal_transitions, key=attrgetter('score'))
+                    best_correct = max(correct_transitions, key=attrgetter('score'))
+
+                    # accumulate losses
+                    loss = 1 - best_correct.score + best_legal.score
+                    dy_loss = 1 - best_correct.dy_score + best_legal.dy_score
+
+
+                    if best_legal != best_correct and loss > 0:
+                        losses.append(dy_loss)
+                        loss_chunk += loss
+                        loss_all += loss
+                    total_chunk += 1
+                    total_all += 1
+
+                    # perform transition
+                    # note that we compare against loss + 1, to perform aggressive exploration
+                    selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
+                    state.perform_transition(selected.op, selected.label, selected.trigger)
+
+            # process losses in chunks
+            if len(losses) > 50:
+                try:
+                    loss = dy.esum(losses)
+                    loss.scalar_value()
+                    loss.backward()
+                    self.trainer_dp.update()
+                except:
+                    pass
+                dy.renew_cg()
+                self.set_empty_vector()
+                losses = []
+
+        # consider any remaining losses
+        if len(losses) > 0:
+            try:
+                loss = dy.esum(losses)
+                loss.scalar_value()
+                loss.backward()
+                self.trainer_dp.update()
+            except:
+                pass
+            dy.renew_cg()
+            self.set_empty_vector()
+
+        end = time.time()
+        print('\nend of epoch')
+        print(f'count: {i}\tloss: {loss_all/total_all:.4f}\ttime: {end-start_all:,.2f} secs')
+
+
 
     def train_events(self, sentences):
-        self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.trainer_ee, self.i2tg)
-
-    def _train(self, sentences, transition_system, evaluate, relations, trainer, triggers = None):
+        # self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.trainer_ee, self.i2tg)
         start_chunk = time.time()
         start_all = time.time()
         loss_chunk = 0
@@ -304,16 +416,13 @@ class ArcHybridParser:
                 # assign embedding to each word
                 features = self.extract_features(sentence, drop_word=True)
                 # initialize sentence parse
-                state = transition_system(sentence)
+                state = CustomTransitionSystem(sentence)
                 # parse sentence
                 while not state.is_terminal():
-                    outputs = evaluate(state.stack, state.buffer, features)
+                    outputs = self.evaluate_events(state.stack, state.buffer, features)
 
-                    if triggers:
-                        dy_op_scores, dy_lbl_scores, dy_tg_scores = outputs
-                        np_tg_scores = dy_tg_scores.npvalue()
-                    else:
-                        dy_op_scores, dy_lbl_scores = outputs
+                    dy_op_scores, dy_lbl_scores, dy_tg_scores = outputs
+                    np_tg_scores = dy_tg_scores.npvalue()
 
                     # get scores in numpy arrays
                     np_op_scores = dy_op_scores.npvalue()
@@ -321,70 +430,43 @@ class ArcHybridParser:
 
                     # collect all legal transitions
                     legal_transitions = []
-                    if triggers:
-                        for lt in state.all_legal():
-                            ix = state.t2i[lt]
-                            if lt == "shift":
-                                for j, tg in enumerate(triggers[1:], start=2):
-                                    if (hasattr(state.buffer[0], 'is_parent') and state.buffer[0].is_parent and j == 1):
-                                        continue
-                                    t = new_Transition(lt, None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
-                                    legal_transitions.append(t)
-                            if lt == "drop":
-                                t = new_Transition(lt, None, "O", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[1], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
+                    
+                    for lt in state.all_legal():
+                        ix = state.t2i[lt]
+                        if lt == "shift":
+                            for j, tg in enumerate(self.i2tg[1:], start=2):
+                                if (hasattr(state.buffer[0], 'is_parent') and state.buffer[0].is_parent and j == 1):
+                                    continue
+                                t = new_Transition(lt, None, tg, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[j], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[j])
                                 legal_transitions.append(t)
-                                t = new_Transition(lt, None, "Protein", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[4], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[4])
-                                legal_transitions.append(t)
-                            if lt in ['left_reduce', 'left_attach']:
-                                for j, r in enumerate(relations):
-                                    k = 1 + 2* j
-                                    t = new_Transition(lt, r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
-                                    legal_transitions.append(t)
-                            if lt in ['right_reduce', 'right_attach']:
-                                for j, r in enumerate(relations):
-                                    k = 2 + 2 * j
-                                    t = new_Transition(lt, r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
-                                    legal_transitions.append(t)
-                            if lt == "swap":
-                                t = new_Transition(lt, None, None, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[0])
-                                legal_transitions.append(t)
-                        # collect all correct transitions
-                        correct_transitions = []
-                        for t in legal_transitions:
-                            if state.is_correct(t[0]):
-                                relation = state.get_arc_label_for_transition(t[0])
-                                label = state.get_token_label_for_transition(t[0])
-                                if t[1] == relation and t[2] == label:
-                                    correct_transitions.append(t)
-
-                    else:
-                        if state.is_legal('shift'):
-                            ix = state.t2i['shift']
-                            t = Transition('shift', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
+                        if lt == "drop":
+                            t = new_Transition(lt, None, "O", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[1], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[1])
                             legal_transitions.append(t)
-                        if state.is_legal('left_arc'):
-                            ix = state.t2i['left_arc']
-                            for j,r in enumerate(relations):
-                                k = 1 + 2 * j
-                                t = Transition('left_arc', r, None, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                            t = new_Transition(lt, None, "Protein", np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[4], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[4])
+                            legal_transitions.append(t)
+                        if lt in ['left_reduce', 'left_attach']:
+                            for j, r in enumerate(self.ev_relations):
+                                k = 1 + 2* j
+                                t = new_Transition(lt, r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
                                 legal_transitions.append(t)
-                        if state.is_legal('right_arc'):
-                            ix = state.t2i['right_arc']
-                            for j,r in enumerate(relations):
+                        if lt in ['right_reduce', 'right_attach']:
+                            for j, r in enumerate(self.ev_relations):
                                 k = 2 + 2 * j
-                                t = Transition('right_arc', r, None, np_op_scores[ix] + np_lbl_scores[k], dy_op_scores[ix] + dy_lbl_scores[k])
+                                t = new_Transition(lt, r, None, np_op_scores[ix] + np_lbl_scores[k] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[k] + dy_tg_scores[0])
                                 legal_transitions.append(t)
-                        if state.is_legal('drop'):
-                            ix = state.t2i['drop']
-                            t = Transition('drop', None, None, np_op_scores[ix] + np_lbl_scores[0], dy_op_scores[ix] + dy_lbl_scores[0])
+                        if lt == "swap":
+                            t = new_Transition(lt, None, None, np_op_scores[ix] + np_lbl_scores[0] + np_tg_scores[0], dy_op_scores[ix] + dy_lbl_scores[0] + dy_tg_scores[0])
                             legal_transitions.append(t)
-                        # collect all correct transitions
-                        correct_transitions = []
-                        for t in legal_transitions:
-                            if state.is_correct(t):
-                                if t.op in ['shift', 'drop'] or t.label in state.stack[-1].relation:
-                                    correct_transitions.append(t)
+                    # collect all correct transitions
+                    correct_transitions = []
+                    for t in legal_transitions:
+                        if state.is_correct(t[0]):
+                            relation = state.get_arc_label_for_transition(t[0])
+                            label = state.get_token_label_for_transition(t[0])
+                            if t[1] == relation and t[2] == label:
+                                correct_transitions.append(t)
 
+                    
                     # select transition
                     best_correct = max(correct_transitions, key=attrgetter('score'))
 
@@ -393,12 +475,7 @@ class ArcHybridParser:
                     loss = dy.hinge(legal_scores, i_correct)
                     # loss = dy.pickneglogsoftmax(legal_scores, i_correct)
                     losses.append(loss)
-
-                    # perform transition
-                    if trigger:
-                        selected = best_correct
-                    else:
-                        selected = best_legal if loss + 1 > 0 and random.random() < self.p_explore else best_correct
+                    selected = best_correct
                     state.perform_transition(selected.op, selected.label, selected.trigger)
 
             # process losses in chunks
@@ -407,7 +484,7 @@ class ArcHybridParser:
                     loss = dy.esum(losses)
                     l = loss.scalar_value()
                     loss.backward()
-                    trainer.update()
+                    self.trainer_ee.update()
                 except:
                     pass
                 dy.renew_cg()
@@ -424,7 +501,7 @@ class ArcHybridParser:
                 loss = dy.esum(losses)
                 loss.scalar_value()
                 loss.backward()
-                trainer.update()
+                self.trainer_ee.update()
             except:
                 pass
             dy.renew_cg()
@@ -433,6 +510,7 @@ class ArcHybridParser:
         end = time.time()
         print('\nend of epoch')
         print(f'count: {i}\tloss: {loss_all/total_all:.4f}\ttime: {end-start_all:,.2f} secs')
+
 
     def parse_event(self, sentence):
         for e in sentence:
