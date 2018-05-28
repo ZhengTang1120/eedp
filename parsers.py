@@ -279,7 +279,7 @@ class ArcHybridParser:
         self._train(sentences, ArcHybrid, self.evaluate_dependencies, self.dep_relations, self.trainer_dp)
 
     def train_events(self, sentences):
-        self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.trainer_ee self.i2tg)
+        self._train(sentences, CustomTransitionSystem, self.evaluate_events, self.ev_relations, self.trainer_ee, self.i2tg)
 
     def _train(self, sentences, transition_system, evaluate, relations, trainer, triggers = None):
         start_chunk = time.time()
