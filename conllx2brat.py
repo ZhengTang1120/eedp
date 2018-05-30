@@ -7,7 +7,7 @@ from utils import *
 import json
 import itertools
 
-API = ProcessorsBaseAPI(hostname="localhost", port=8888)
+API = ProcessorsBaseAPI(hostname="128.196.142.42", port=8888)
 
 # brat mentions
 TextboundMention = namedtuple('TextboundMention', 'id label start end text')
@@ -104,8 +104,13 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument('datadir')
+    parser.add_argument('--outfolder')
     parser.add_argument('--conllx', default='brat.conllx')
+    
     args = parser.parse_args()
+    outfolder = args.outfolder
+    if not os.path.exists(outfolder):
+        os.makedirs(outfolder)
     sentences = read_conllx(args.conllx, True)
     es = 0
     for fname in glob.glob(os.path.join(args.datadir, '*.a1')):
@@ -115,7 +120,7 @@ if __name__ == '__main__':
         txt = read(root + '.txt')
         a1 = read(root + '.a1')
         a1 = list(parse_annotations(a1))
-        t1 = open(root + '.a2.t1', "w")
+        t1 = open(outfolder + '/' + root.split('/')[-1] + '.a2.t1', "w")
         doc = API.bionlp.annotate(txt)
         curr_sents = sentences[:len(doc.sentences)]
         sentences = sentences[len(doc.sentences):]
