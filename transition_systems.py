@@ -71,12 +71,14 @@ class ArcHybrid:
         elif transition == 'left_arc':
             child = self.stack.pop()
             parent = self.buffer[0]
+            parent.children.append(child.id)
             child.pred_parent_id = parent.id
             child.pred_relation = relation
             parent.is_parent = True
         elif transition == 'right_arc':
             child = self.stack.pop()
             parent = self.stack[-1]
+            parent.children.append(child.id)
             child.pred_parent_id = parent.id
             child.pred_relation = relation
 

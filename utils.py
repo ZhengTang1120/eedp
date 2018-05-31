@@ -208,6 +208,8 @@ class ConllEntry:
         self.pred_parent_id = []
         self.pred_relation = []
 
+        self.children = []
+
     def __repr__(self):
         return '<ConllEntry: %s>' % self.form
 

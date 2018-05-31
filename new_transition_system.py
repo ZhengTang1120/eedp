@@ -54,7 +54,6 @@ class CustomTransitionSystem:
             return self.count_arcs(s0, s1) == 0
 
         elif transition == 'left_attach':
-            return False
             # there must be at least two things in the stack
             # s1 can't be root
             # s0 and s1 shouldn't be part of any arcs
@@ -67,7 +66,6 @@ class CustomTransitionSystem:
             return self.count_arcs(s0, s1) == 0 and self.count_arcs(s1, s0) == 0
 
         elif transition == 'right_attach':
-            return False
             # there must be at least two things in the stack
             # s0 and s1 shouldn't be part of any arcs
             if len(self.stack) < 2: # there must be at least 2 things in the stack
@@ -248,6 +246,7 @@ class CustomTransitionSystem:
             arc = Arc(s0, s1, relation)
             self.arcs.append(arc)
             s1.pred_parent_id.append(s0.id)
+            s0.children.append(s1.id)
             s1.pred_relation.append(relation)
             self.stack.pop(-2)
 
@@ -258,6 +257,7 @@ class CustomTransitionSystem:
                 arc = Arc(s1, s0, relation)
                 self.arcs.append(arc)
                 s0.pred_parent_id.append(s1.id)
+                s1.children.append(s0.id)
                 s0.pred_relation.append(relation)
             self.stack.pop()
 
@@ -267,6 +267,7 @@ class CustomTransitionSystem:
             arc = Arc(s0, s1, relation)
             self.arcs.append(arc)
             s1.pred_parent_id.append(s0.id)
+            s0.children.append(s1.id)
             s1.pred_relation.append(relation)
 
         elif transition == 'right_attach':
@@ -275,6 +276,7 @@ class CustomTransitionSystem:
             arc = Arc(s1, s0, relation)
             self.arcs.append(arc)
             s0.pred_parent_id.append(s1.id)
+            s1.children.append(s0.id)
             s0.pred_relation.append(relation)
             self.buffer.insert(0, self.stack.pop())
 
