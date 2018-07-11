@@ -57400,34 +57400,6 @@
 22	minutes	_	_	NNS	O	[-1]	['none']	_	_
 23	.	_	_	.	O	[-1]	['none']	_	_
 
-1	Whole	_	_	JJ	O	[-1]	['none']	_	_
-2	cell	_	_	NN	O	[-1]	['none']	_	_
-3	lysates	_	_	NNS	O	[-1]	['none']	_	_
-4	were	_	_	VBD	O	[-1]	['none']	_	_
-5	resolved	_	_	VBN	O	[-1]	['none']	_	_
-6	by	_	_	IN	O	[-1]	['none']	_	_
-7	SDS-PAGE	_	_	NN	O	[-1]	['none']	_	_
-8	and	_	_	CC	O	[-1]	['none']	_	_
-9	phospho-Ser276	_	_	NN	Entity	[9]	['Site']	_	_
-10	or	_	_	CC	O	[-1]	['none']	_	_
-11	phospho-Ser536	_	_	NN	Entity	[11]	['Site']	_	_
-12	of	_	_	IN	O	[-1]	['none']	_	_
-13	NF-kappaB	_	_	NN	O	[-1]	['none']	_	_
-14	p65	_	_	NN	Protein	[9, 11]	['Theme', 'Theme']	_	_
-15	was	_	_	VBD	O	[-1]	['none']	_	_
-16	detected	_	_	VBN	O	[-1]	['none']	_	_
-17	using	_	_	VBG	O	[-1]	['none']	_	_
-18	phospho	_	_	NN	O	[-1]	['none']	_	_
-19	specific	_	_	JJ	O	[-1]	['none']	_	_
-20	antibodies	_	_	NNS	O	[-1]	['none']	_	_
-21	to	_	_	TO	O	[-1]	['none']	_	_
-22	either	_	_	CC	O	[-1]	['none']	_	_
-23	residue	_	_	NN	O	[-1]	['none']	_	_
-24	of	_	_	IN	O	[-1]	['none']	_	_
-25	NF-kappaB	_	_	NN	O	[-1]	['none']	_	_
-26	p65	_	_	NN	Protein	[0]	['root']	_	_
-27	.	_	_	.	O	[-1]	['none']	_	_
-
 1	(	_	_	-LRB-	O	[-1]	['none']	_	_
 2	C	_	_	NN	O	[-1]	['none']	_	_
 3	)	_	_	-RRB-	O	[-1]	['none']	_	_
