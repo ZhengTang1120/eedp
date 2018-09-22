@@ -30,7 +30,7 @@ class ArcHybridParser:
         self.pretrained = pretrained
         if self.pretrained:
             if dep_relations:
-                self.embeddings = np.loadtxt("pubmedm.txt")
+                self.embeddings = np.loadtxt("pubmedm13.txt")
             else:
                 self.embeddings = np.loadtxt("pubmed.txt")
 
@@ -93,6 +93,10 @@ class ArcHybridParser:
                 self.model,
                 dy.VanillaLSTMBuilder,
         )
+        # transform word+pos vector into a vector similar to the lstm output
+        # used to generate padding vectors
+        self.word_to_lstm      = self.model.add_parameters((self.lstm_hidden_size, self.w_embed_size + self.t_embed_size + self.clstm_hidden_size + self.e_embed_size))
+        self.word_to_lstm_bias = self.model.add_parameters((self.lstm_hidden_size))
 
         # char encoder
         # self.cbilstm = dy.BiRNNBuilder(
@@ -110,11 +114,6 @@ class ArcHybridParser:
         )
         self.char_to_lstm      = self.model.add_parameters((self.clstm_hidden_size, self.c_embed_size))
         self.char_to_lstm_bias = self.model.add_parameters((self.clstm_hidden_size))
-
-        # transform word+pos vector into a vector similar to the lstm output
-        # used to generate padding vectors
-        self.word_to_lstm      = self.model.add_parameters((self.lstm_hidden_size, self.w_embed_size + self.t_embed_size + self.clstm_hidden_size + self.e_embed_size))
-        self.word_to_lstm_bias = self.model.add_parameters((self.lstm_hidden_size))
 
         if self.dep_relations:
             # fully connected network with one hidden layer
@@ -187,10 +186,10 @@ class ArcHybridParser:
         w_pad = self.wlookup[self.w2i['*pad*']]
         t_pad = self.tlookup[self.t2i['*pad*']]
         c_pad = self.clookup[self.c2i['*pad*']]
-        c_pad = self.char_to_lstm * c_pad + self.char_to_lstm_bias
+        c_pad = self.char_to_lstm.expr() * c_pad + self.char_to_lstm_bias.expr()
         e_pad = self.elookup[self.e2i['*pad*']]
         v_pad = dy.concatenate([w_pad, t_pad, c_pad, e_pad])
-        i_vec = self.word_to_lstm * v_pad + self.word_to_lstm_bias
+        i_vec = self.word_to_lstm.expr() * v_pad + self.word_to_lstm_bias.expr()
         self.empty = dy.tanh(i_vec)
 
     def extract_features(self, sentence, drop_word=False):
@@ -237,11 +236,11 @@ class ArcHybridParser:
         s2c = get_children_avg(stack[-3].children) if len(stack) > 2 else self.empty
         input = dy.concatenate([b, s0, s1, s2, s0c, s1c, s2c])
         # predict action
-        op_hidden = dy.tanh(self.dep_op_hidden * input + self.dep_op_hidden_bias)
-        op_output = self.dep_op_output * op_hidden + self.dep_op_output_bias
+        op_hidden = dy.tanh(self.dep_op_hidden.expr() * input + self.dep_op_hidden_bias.expr())
+        op_output = self.dep_op_output.expr() * op_hidden + self.dep_op_output_bias.expr()
         # predict label
-        lbl_hidden = dy.tanh(self.dep_lbl_hidden * input + self.dep_lbl_hidden_bias)
-        lbl_output = self.dep_lbl_output * lbl_hidden + self.dep_lbl_output_bias
+        lbl_hidden = dy.tanh(self.dep_lbl_hidden.expr() * input + self.dep_lbl_hidden_bias.expr())
+        lbl_output = self.dep_lbl_output.expr() * lbl_hidden + self.dep_lbl_output_bias.expr()
         # return scores
         return op_output, lbl_output
 
@@ -264,14 +263,14 @@ class ArcHybridParser:
         s2c = get_children_avg(stack[-3].children) if len(stack) > 2 else self.empty
         input = dy.concatenate([b, s0, s1, s2, s0c, s1c, s2c])
         # predict action
-        op_hidden = dy.tanh(self.ev_op_hidden * input + self.ev_op_hidden_bias)
-        op_output = self.ev_op_output * op_hidden + self.ev_op_output_bias
+        op_hidden = dy.tanh(self.ev_op_hidden.expr() * input + self.ev_op_hidden_bias.expr())
+        op_output = self.ev_op_output.expr() * op_hidden + self.ev_op_output_bias.expr()
         # predict label
-        lbl_hidden = dy.tanh(self.ev_lbl_hidden * input + self.ev_lbl_hidden_bias)
-        lbl_output = self.ev_lbl_output * lbl_hidden + self.ev_lbl_output_bias
+        lbl_hidden = dy.tanh(self.ev_lbl_hidden.expr() * input + self.ev_lbl_hidden_bias.expr())
+        lbl_output = self.ev_lbl_output.expr() * lbl_hidden + self.ev_lbl_output_bias.expr()
         # predict trigger label
-        tg_hidden = dy.tanh(self.tg_lbl_hidden * input + self.tg_lbl_hidden_bias)
-        tg_output = self.tg_lbl_output * tg_hidden + self.tg_lbl_output_bias
+        tg_hidden = dy.tanh(self.tg_lbl_hidden.expr() * input + self.tg_lbl_hidden_bias.expr())
+        tg_output = self.tg_lbl_output.expr() * tg_hidden + self.tg_lbl_output_bias.expr()
         # return scores
         return op_output, lbl_output, tg_output
 

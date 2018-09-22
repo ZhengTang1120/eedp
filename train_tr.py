@@ -2,9 +2,10 @@
 
 import argparse, random
 from utils import *
-from parsers import ArcHybridParser
+from parsers_tr import ArcHybridParser
 import os
 import numpy as np
+from trainer import *
 
 def make_parser(args, word_count, words, tags, chars, entities=None, ev_rels=None, dep_rels=None):
     return ArcHybridParser(
@@ -105,10 +106,10 @@ if __name__ == '__main__':
         print('epoch', epoch + 1)
         if args.depsfile:
             random.shuffle(sentences)
-            parser.train_dependencies(sentences)
+            train_dependencies(sentences, parser)
         if args.evsfile:
             random.shuffle(events)
-            parser.train_events(events)
+            train_events(events, parser)
         name = f'{args.outdir}/parser{epoch+1:03}'
         print('saving', name)
         parser.save(name)
