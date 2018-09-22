@@ -110,7 +110,6 @@ venv.bak/
 *.pickle
 *.a1
 *.t1d
-*.txt
 *.t13d
 *.t13
 *.t12d
@@ -118,3 +117,6 @@ venv.bak/
 *.t123
 *.t12
 *.a2
+*.txt
+*.json
+.DS_Store
