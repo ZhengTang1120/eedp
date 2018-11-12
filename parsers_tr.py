@@ -46,7 +46,7 @@ class ArcHybridParser(nn.Module):
         self.c_embed_size = c_embed_size
         self.clstm_hidden_size = clstm_hidden_size
         self.e_embed_size = e_embed_size
-        self.lstm_hidden_size = lstm_hidden_size * 2 # must be even
+        self.lstm_hidden_size = lstm_hidden_size * 2 # must be even for BiLSTM
         self.lstm_num_layers = lstm_num_layers
         self.dep_op_hidden_size = dep_op_hidden_size
         self.dep_lbl_hidden_size = dep_lbl_hidden_size

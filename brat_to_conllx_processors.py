@@ -15,7 +15,7 @@ EventMention = namedtuple('EventMention', 'id label trigger arguments')
 total_sentences = 0
 skipped_sentences = 0
 
-API = ProcessorsBaseAPI(port=8888)
+API = ProcessorsAPI(port=8886)
 
 def brat_to_conllx(text, annotations):
     """
@@ -187,8 +187,9 @@ if __name__ == '__main__':
         print(f'reading {name}')
         txt = read(root + '.txt')
         a1 = read(root + '.a1')
-        a2 = read(root + '.a2')
-        annotations = f'{a1}\n{a2}'
+        # a2 = read(root + '.a2')
+        # annotations = f'{a1}\n{a2}'
+        annotations = f'{a1}'
         sentences += brat_to_conllx(txt, annotations)
 
     print('---')

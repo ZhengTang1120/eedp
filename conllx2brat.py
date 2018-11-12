@@ -7,7 +7,7 @@ from utils import *
 import json
 import itertools
 
-API = ProcessorsBaseAPI(hostname="localhost", port=8888)
+API = ProcessorsAPI(port=8886)
 
 # brat mentions
 TextboundMention = namedtuple('TextboundMention', 'id label start end text')
@@ -115,7 +115,8 @@ if __name__ == '__main__':
         txt = read(root + '.txt')
         a1 = read(root + '.a1')
         a1 = list(parse_annotations(a1))
-        t1 = open(root + '.a2.t1', "w")
+        root = root.replace("BioNLP-ST-2013_GE_devel_data_rev3","BioNLP-ST-2013_GE_devel_data_rev3_out")
+        t1 = open(root + '.a2', "w")
         doc = API.bionlp.annotate(txt)
         curr_sents = sentences[:len(doc.sentences)]
         sentences = sentences[len(doc.sentences):]

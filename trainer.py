@@ -186,11 +186,11 @@ def train_events(sentences, parser):
                 best_correct = max(correct_transitions, key=attrgetter('score'))
 
                 i_correct = legal_transitions.index(best_correct)
-                a = [1 if i == i_correct else 0for i in range(len(legal_transitions))]
+                a = [1 if i == i_correct else 0 for i in range(len(legal_transitions))]
                 legal_scores = torch.stack([t.tr_score for t in legal_transitions])
 
                 loss = parser.criterion(legal_scores, torch.tensor(a))
-                print (loss.data.numpy())
+                # print (loss.data.numpy())
                 loss.backward(retain_graph=True)
 
                 selected = best_correct
