@@ -28,7 +28,7 @@ def train_dependencies(sentences, parser):
     for i, sentence in enumerate(sentences):
         if i != 0 and i % 100 == 0:
             end = time.time()
-            print(f'count: {i}\tloss: {loss_chunk/total_chunk:.4f}\ttime: {end-start_chunk:,.2f} secs')
+            # print(f'count: {i}\tloss: {loss_chunk/total_chunk:.4f}\ttime: {end-start_chunk:,.2f} secs')
             start_chunk = end
             loss_chunk = 0
             total_chunk = 0
@@ -120,7 +120,7 @@ def train_events(sentences, parser):
     for i, sentence in enumerate(sentences):
         if i != 0 and i % 100 == 0:
             end = time.time()
-            print(f'count: {i}\tloss: {loss_chunk/total_chunk:.4f}\ttime: {end-start_chunk:,.2f} secs')
+            # print(f'count: {i}\tloss: {loss_chunk/total_chunk:.4f}\ttime: {end-start_chunk:,.2f} secs')
             start_chunk = end
             loss_chunk = 0
             total_chunk = 0
