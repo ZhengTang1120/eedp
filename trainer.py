@@ -202,4 +202,4 @@ def train_events(sentences, parser):
 
     end = time.time()
     print('\nend of epoch')
-    print(f'count: {i}\tloss: {loss_all/total_all:.4f}\ttime: {end-start_all:,.2f} secs')
+    # print(f'count: {i}\tloss: {loss_all/total_all:.4f}\ttime: {end-start_all:,.2f} secs')
