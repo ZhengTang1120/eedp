@@ -27,36 +27,41 @@ def brat_to_conllx(text, annotations):
     annotations = parse_annotations(annotations)
     skipped = 0
     doc = API.bionlp.annotate(text)
-    for words, starts, ends, tags in get_token_spans(doc):
-        total_sentences += 1
-        conllx = [root]
-        try:
-            for i in range(len(words)):
-                tbm = get_tbm(annotations, starts[i], ends[i])
-                label = None if tbm is None else tbm.label
-                if label is None:
-                    label = 'O'
-                rels = list()
-                heads = list()
-                for rel, head, hlabel in get_relhead(annotations, starts, ends, tbm, i):
-                    if head not in heads:
-                        rels.append(rel)
-                        heads.append(head)
-                entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label[0], head=heads, deprel=rels)
-                conllx.append(entry)
-        except Exception as e:
-            # get_mention_head() searches for the token's end position
-            # in the `ends` list that corresponds to the sentence's tokens,
-            # and throws an exception if the provided end does not correspond to any token
-            # print('ERROR: tokenization does not align')
-            # print(e)
-            # print(words)
-            # print(ends)
-            skipped_sentences += 1
-            print (e)
-            yield [ConllEntry(id=1, form='*skipped*', postag='*skipped*', head=-1, deprel='skipped', feats='O')]
-            continue
-        yield conllx
+    for sent in doc.sentences:
+        s = sent.startOffsets[0]
+        e = sent.endOffsets[-1]
+        sentence = text[s:e]
+        print (sentence)
+    # for words, starts, ends, tags in get_token_spans(doc):
+    #     total_sentences += 1
+    #     conllx = [root]
+    #     try:
+    #         for i in range(len(words)):
+    #             tbm = get_tbm(annotations, starts[i], ends[i])
+    #             label = None if tbm is None else tbm.label
+    #             if label is None:
+    #                 label = 'O'
+    #             rels = list()
+    #             heads = list()
+    #             for rel, head, hlabel in get_relhead(annotations, starts, ends, tbm, i):
+    #                 if head not in heads:
+    #                     rels.append(rel)
+    #                     heads.append(head)
+    #             entry = ConllEntry(id=i+1, form=words[i], postag=tags[i], feats=label[0], head=heads, deprel=rels)
+    #             conllx.append(entry)
+    #     except Exception as e:
+    #         # get_mention_head() searches for the token's end position
+    #         # in the `ends` list that corresponds to the sentence's tokens,
+    #         # and throws an exception if the provided end does not correspond to any token
+    #         # print('ERROR: tokenization does not align')
+    #         # print(e)
+    #         # print(words)
+    #         # print(ends)
+    #         skipped_sentences += 1
+    #         print (e)
+    #         yield [ConllEntry(id=1, form='*skipped*', postag='*skipped*', head=-1, deprel='skipped', feats='O')]
+    #         continue
+    #     yield conllx
 
 
 def get_tbm(annotations, start, end):
@@ -175,7 +180,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument('datadir')
-    parser.add_argument('--outfile', default='brat.conllx')
+    # parser.add_argument('--outfile', default='brat.conllx')
     args = parser.parse_args()
 
     sentences = []
@@ -190,11 +195,12 @@ if __name__ == '__main__':
         # a2 = read(root + '.a2')
         # annotations = f'{a1}\n{a2}'
         annotations = f'{a1}'
-        sentences += brat_to_conllx(txt, annotations)
+        brat_to_conllx(txt, annotations)
+        # sentences += brat_to_conllx(txt, annotations)
 
-    print('---')
-    print(f'{total_sentences:,} sentences')
-    print(f'{skipped_sentences:,} skipped')
-    print(f'{total_sentences-skipped_sentences:,} remaining')
-    print(f'writing {args.outfile}')
-    write_conllx(args.outfile, sentences)
+    # print('---')
+    # print(f'{total_sentences:,} sentences')
+    # print(f'{skipped_sentences:,} skipped')
+    # print(f'{total_sentences-skipped_sentences:,} remaining')
+    # print(f'writing {args.outfile}')
+    # write_conllx(args.outfile, sentences)

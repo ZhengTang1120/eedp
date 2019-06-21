@@ -116,7 +116,7 @@ def gen_conllx(filename, non_proj=False):
     read = 0
     dropped = 0
     if "brat" in filename:
-        root = ConllEntry(id=0, form='*root*', postag='*root*', head=[], deprel=[], feats='O')
+        root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel="rroot", feats='O')
     else:
         root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel="rroot", feats='O')
     with open(filename) as f:
@@ -205,8 +205,8 @@ class ConllEntry:
         self.parent_id = self.head
         self.relation = self.deprel
         self.brat_label = self.feats
-        self.pred_parent_id = []
-        self.pred_relation = []
+        self.pred_parent_id = None
+        self.pred_relation = None
 
         self.children = []
 
@@ -237,6 +237,5 @@ class ConllEntry:
         head = eval(head)
         phead = int(phead) if phead != '_' else None
         pdeprel = pdeprel if pdeprel != '_' else None
-        if "[" in deprel and "]" in deprel:
-            deprel = eval(deprel) if deprel != "skipped" else "skipped"
+        deprel = deprel if deprel != "none" else None
         return ConllEntry(id, form, lemma, cpostag, postag, feats, head, deprel, phead, pdeprel)
