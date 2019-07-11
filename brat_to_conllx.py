@@ -4,7 +4,9 @@ import os
 import glob
 import argparse
 from collections import namedtuple, defaultdict
-from nltk import sent_tokenize, word_tokenize, pos_tag
+from nltk.tokenize import RegexpTokenizer
+from nltk import pos_tag
+from processors import *
 from utils import *
 
 # brat mentions
@@ -15,6 +17,18 @@ EventMention = namedtuple('EventMention', 'id label trigger arguments')
 total_sentences = 0
 skipped_sentences = 0
 
+#initial tokenizer
+tokenizer = RegexpTokenizer(r'\w+|[^\w\s]')
+API = ProcessorsAPI(port=8886)
+
+def sent_tokenize(text):
+    doc = API.bionlp.annotate(text)
+    for sent in doc.sentences:
+        s = sent.startOffsets[0]
+        e = sent.endOffsets[-1]
+        sentence = text[s:e]
+        yield sentence
+
 def brat_to_conllx(text, annotations):
     """
     gets an annotation corresponding to a single paper
@@ -22,7 +36,6 @@ def brat_to_conllx(text, annotations):
     """
     global total_sentences, skipped_sentences
     root = ConllEntry(id=0, form='*root*', postag='*root*', head=-1, deprel='rroot')
-    annotations = list(parse_annotations(annotations))
     skipped = 0
     for words, starts, ends in get_token_spans(text):
         total_sentences += 1
@@ -44,7 +57,7 @@ def brat_to_conllx(text, annotations):
             print('ERROR: tokenization does not align')
             skipped_sentences += 1
             continue
-        yield make_projective(conllx)
+        yield conllx #make_projective(conllx)
 
 def make_projective(entries):
     num_dependents = defaultdict(int)
@@ -67,14 +80,17 @@ def get_mention_head(annotations, ends, mention_id):
     """returns the head token for the given mention id"""
     for a in annotations:
         if a.id == mention_id:
-            i = ends.index(a.end)
-            return i + 1
+            try:
+                i = ends.index(a.end)
+                return i + 1
+            except ValueError:
+                return 0
 
 def get_relhead(annotations, starts, ends, tbm, tok):
     """returns the correct relation and head for the given textbound mention"""
     # it the token does not belong to a textbound mention then it should be dropped
     if tbm is None:
-        return 'none', -1
+        return 'none', 0
     # if mention is multitoken, all tokens should point to the mention head
     if tbm.end != ends[tok]:
         head = get_mention_head(annotations, ends, tbm.id)
@@ -94,28 +110,52 @@ def get_relhead(annotations, starts, ends, tbm, tok):
                         head = get_mention_head(annotations, ends, a.trigger)
                         # collapse theme1, theme2, etc. into theme
                         rel = rel[:-1] if rel[-1].isdigit() else rel
-                        relheads.append((rel, head))
+                        if head != 0:
+                            relheads.append((rel, head))
     if relheads:
         return relheads[-1]
     # if token has no parent then point it to the root
     return 'root', 0
 
-def parse_annotations(annotations):
+def parse_a1(annotations):
     for line in annotations.splitlines():
         if line.startswith('T'):
             [id, data, text] = line.split('\t')
-            [label, start, end] = data.split(' ')
-            yield TextboundMention(id, label, int(start), int(end), text)
-        elif line.startswith('E'):
+            label = data.split(' ')[0]
+            intervals = ' '.join(data.split(' ')[1:])
+            for se in intervals.split(';'):
+                [s, e] = se.split(' ')
+                start = int(s)
+                end = int(e)
+            yield TextboundMention(id, label, start, end, text)
+
+def parse_a2(annotations, a1):
+    res = list()
+    for line in annotations.splitlines():
+        if line.startswith('E'):
             [id, data] = line.split('\t')
-            [label_trigger, *args] = data.split(' ')
-            [label, trigger] = label_trigger.split(':')
+            [label, *args] = data.split(' ')
+            [label2, trigger] = args[0].split(':')
+            for i, a in enumerate(a1):
+                if trigger == a.id:
+                    a1[i] = TextboundMention(a.id, label, a.start, a.end, a.text)
             arguments = defaultdict(list)
-            for a in args:
+            for a in args[1:]:
                 if a.strip() != '':
                     [name, arg] = a.split(':')
                     arguments[name].append(arg)
-            yield EventMention(id, label, trigger, dict(arguments))
+            res.append(EventMention(id, label, trigger, dict(arguments)))
+        # Negation
+        else:
+            for i,a in enumerate(res):
+                [id, data] = line.split('\t')
+                [_, arg] = data.split(':')
+                if a.id == arg:
+                    res[i] = EventMention(a.id, "Negative#"+a.label, a.trigger, a.arguments)
+                    for j, b in enumerate(a1):
+                        if a.trigger == b.id:
+                            a1[j] = TextboundMention(b.id, "Negative#"+a.label, b.start, b.end, b.text)
+    return res, a1
 
 def get_token_spans(text):
     """
@@ -132,7 +172,7 @@ def sentence_tokens(sentence, offset):
     pos = 0
     starts = []
     ends = []
-    words = word_tokenize(sentence)
+    words = tokenizer.tokenize(sentence)
     for w in words:
         pos = sentence.find(w, pos)
         starts.append(pos + offset)
@@ -159,14 +199,21 @@ if __name__ == '__main__':
         name = os.path.basename(root)
         print(f'reading {name}')
         txt = read(root + '.txt')
+
         a1 = read(root + '.a1')
         a2 = read(root + '.a2')
-        annotations = f'{a1}\n{a2}'
-        sentences += brat_to_conllx(txt, annotations)
-
-    print('---')
-    print(f'{total_sentences:,} sentences')
-    print(f'{skipped_sentences:,} skipped')
-    print(f'{total_sentences-skipped_sentences:,} remaining')
-    print(f'writing {args.outfile}')
-    write_conllx(args.outfile, sentences)
+        a1 = list(parse_a1(f'{a1}'))
+        a2, a1 = parse_a2(f'{a2}', a1)
+        annotations = a2 + a1
+        print (len(annotations))
+        for a in annotations:
+            if a.id.startswith('E'):
+                print (a.arguments)
+    #     sentences += brat_to_conllx(txt, annotations)
+    
+    # print('---')
+    # print(f'{total_sentences:,} sentences')
+    # print(f'{skipped_sentences:,} skipped')
+    # print(f'{total_sentences-skipped_sentences:,} remaining')
+    # print(f'writing {args.outfile}')
+    # write_conllx(args.outfile, sentences)
